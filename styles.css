@@ -1,0 +1,70 @@
+body, div, span { padding: 0; border: 0; margin: 0; }
+
+a {
+  text-decoration: none;
+  cursor: pointer;
+  color: #00E;
+}
+a:hover { text-decoration: underline; }
+
+/* Navigation panel =============================================== */
+
+nav {
+  height: 45px;
+  width: 100%;
+  user-select: none;
+}
+nav a, nav span {
+  display: block;
+  padding: 0 15px;
+  text-decoration: none;
+  font-size: 0.75em;
+  line-height: 2.75em;
+  font-weight: 700;
+  font-family: "HelveticaNeue", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: #333;
+}
+nav a:hover, nav span:hover {
+  text-decoration: none;
+}
+nav ul, nav li { padding: 0; border: 0; margin: 0; }
+nav ul {
+  list-style: none;
+  position: relative;
+  float: left;
+}
+nav li {
+  position: relative;
+  float: left;
+}
+nav li.active {
+  background: #ddd;
+}
+nav li:hover {
+  background: #888;
+}
+nav ul ul {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: #fff;
+}
+nav ul ul li {
+  float: none;
+  width: 200px;
+}
+nav ul ul a {
+  line-height: 120%;
+  padding: 10px 15px;
+}
+nav ul ul ul {
+  top: 0;
+  left: 100%;
+}
+nav ul li:hover > ul {
+  display: block;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+}
+
+/* ================================================================ */
