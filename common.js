@@ -1,5 +1,3 @@
-const $id = id => document.getElementById(id);
-
 const $ = (p,...args) => {
   if (p===null) {
     if (args[0].constructor !== String) throw new Error('expected tag name');
@@ -34,6 +32,8 @@ const $ = (p,...args) => {
   }
   return p;
 };
+
+const $id = id => document.getElementById(id);
 
 const $q = (q,f=null) => {
   const xs = document.querySelectorAll(q);

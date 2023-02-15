@@ -11,7 +11,7 @@ include '../head.php';
 <script>
 // const dir = "<?php echo $dir;?>";
 // const mxaods = <?php include 'mxaods.json';?>;
-const data_lumi = 100;
+const lumi_default = 100;
 const vars = [<?php
   $file = fopen('vars.txt','r');
   while (!feof($file)) {

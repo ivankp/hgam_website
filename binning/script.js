@@ -8,20 +8,29 @@ function numfmt(x) {
     : x.toString();
 }
 
-function sanitize_edges(edges) {
+function fix_edges(edges) {
   return edges
     .reduce((a,x) => {
-      x = parseFloat(x);
-      if (!isNaN(x)) a.push(numfmt(x));
+      const neg = x[0] === '-';
+      if (neg) x = x.slice(1);
+      if (x.match(/^(-)?inf(?:(?:ini)?ty)?$/i) || x === '∞') x = Infinity;
+      else x = parseFloat(x);
+      if (!isNaN(x)) a.push(numfmt(neg ? -x : x));
       return a;
     },[])
     .sort((a,b) => a-b)
     .filter((x, i, a) => !i || x != a[i-1]); // unique
 }
 
+function join_num(xs,delim) {
+  return xs.map(x =>
+    Math.abs(x) === Infinity ? (x < 0 ? '-' : '') + 'inf' : x.toString()
+  ).join(delim);
+}
+
 function state_from_url() {
   { let s = location.search;
-    if (s.startsWith('?')) s = s.substr(1);
+    if (s.startsWith('?')) s = s.slice(1);
     if (s.length) for (let x of s.split('&')) {
       const i = x.indexOf('=');
       x = i === -1 ? [ x, null ] : [ x.slice(0,i), x.slice(i+1) ];
@@ -30,51 +39,53 @@ function state_from_url() {
   }
 
   let lumi = parseFloat(state['lumi']);
-  if (isNaN(lumi)) lumi = data_lumi;
-  state['lumi'] = lumi.toString();
+  if (isNaN(lumi)) lumi = lumi_default;
+  state['lumi'] = lumi;
 
   if (!('var' in state) || !vars.includes(state['var']))
     state['var'] = vars[0];
 
   let edges = state['edges'];
   edges = edges == null || edges.length === 0
-    ? [ ] : sanitize_edges(edges.split('+'));
+    ? [ ] : fix_edges(edges.split('+'));
   state['edges'] = edges;
 }
 
 function state_from_form() {
   let lumi = parseFloat(form['lumi'].value);
   if (isNaN(lumi)) {
-    lumi = data_lumi;
-    form['lumi'].value = lumi;
+    lumi = lumi_default;
   }
-  state['lumi'] = lumi.toString();
+  state['lumi'] = lumi;
 
   let v = form['var'].value;
   if (!vars.includes(v)) {
     v = vars[0];
-    form['var'].value = v;
   }
   state['var'] = v;
 
-  let edges = sanitize_edges(form['edges'].value.split(' '));
+  let edges = fix_edges(form['edges'].value.split(' '));
   state['edges'] = edges;
-  form['edges'].value = edges.join(' ');
 }
 
-function url_from_state() {
+function search_from_state(...keys) {
   let search = '';
-  for (let [k,v] of Object.entries(state)) {
+  for (let [k,v] of ( m =>
+    keys.length === 0 ? m : m.filter( ([key]) => keys.includes(key) )
+  )(Object.entries(state)) ) {
     search += (search ? '&' : '?') + k;
     if (v !== null) {
-      if (k === 'edges') v = v.join('+');
+      if (v.constructor === Array) v = join_num(v,'+');
       search += '=' + v;
     }
   }
+  return search;
+}
+function url_from_state() {
   history.replaceState(
     state,
     '',
-    location.origin + location.pathname + search
+    location.origin + location.pathname + search_from_state()
   );
 }
 
@@ -85,7 +96,7 @@ function form_from_state() {
     } else {
       let v = state[name];
       if (v == null) v = '';
-      else if (v.constructor === Array) v = v.join(' ');
+      else if (v.constructor === Array) v = join_num(v,' ');
       x.value = v;
     }
   }
@@ -150,7 +161,14 @@ function main() {
     e.preventDefault();
     state_from_form();
     url_from_state();
+    form_from_state();
 
-    // TODO
+    fetch('req.php'+search_from_state('lumi','var','edges'),{
+      referrer: location.origin + location.pathname
+    })
+    .then(r => r.json())
+    .then(d => {
+      console.log(d);
+    });
   });
 }
