@@ -1,6 +1,6 @@
 <?php
-$main_dir = dirname(__FILE__);
-parse_str($_SERVER['QUERY_STRING'],$params);
+// $main_dir = dirname(__FILE__);
+// parse_str($_SERVER['QUERY_STRING'],$params);
 $page = substr(dirname($_SERVER['SCRIPT_NAME']),1);
 ?><!DOCTYPE HTML>
 <html lang="en-US">
@@ -8,9 +8,7 @@ $page = substr(dirname($_SERVER['SCRIPT_NAME']),1);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php
-  if (empty($title)) {
-    $title = $page;
-  }
+  if (empty($title)) $title = $page;
   echo $title;
 ?></title>
 <link rel="icon" href="<?php
@@ -59,11 +57,3 @@ $page = substr(dirname($_SERVER['SCRIPT_NAME']),1);
     </li>
   </ul>
 </nav>
-
-<pre>
-<?php
-print_r($_SERVER);
-print_r($params);
-print_r($main_dir);
-?>
-</pre>

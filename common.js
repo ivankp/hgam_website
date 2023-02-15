@@ -1,4 +1,4 @@
-const _id = id => document.getElementById(id);
+const $id = id => document.getElementById(id);
 
 const $ = (p,...args) => {
   if (p===null) {
@@ -35,10 +35,18 @@ const $ = (p,...args) => {
   return p;
 };
 
-document.addEventListener('DOMContentLoaded', () => {
-  for (const a of document.querySelectorAll("nav a"))
-    if (page == a.pathname.replace(/^\/+|\/+$/g,''))
-      a.parentElement.classList.add('active');
+const $q = (q,f=null) => {
+  const xs = document.querySelectorAll(q);
+  if (f!==null) for (const x of xs) f(x);
+  return xs;
+};
 
+document.addEventListener('DOMContentLoaded', () => {
+  for (const a of document.querySelectorAll("nav a")) {
+    if (page == a.pathname.replace(/^\/+|\/+$/g,'')) {
+      a.parentElement.classList.add('active');
+      break;
+    }
+  }
   if (typeof main === "function") main();
 });

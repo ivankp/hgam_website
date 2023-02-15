@@ -1,0 +1,141 @@
+.row { display: flex; }
+.col {
+  margin-right: 20px;
+}
+.col > * { display: block; }
+
+.note { font-size: small; }
+.note p {
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.top { font-size: 11pt; }
+.top p { margin: 0 0 10px 0; }
+.top img { margin: 0 4px 0 30px; }
+
+label {
+  user-select: none;
+}
+label > * {
+  vertical-align: middle;
+}
+
+input[name="lumi"] {
+  text-align: right;
+  margin: 0 5px 0 5px;
+}
+input[name="edges"] {
+  text-align: left;
+}
+
+#true_lumi {
+  font-size: small;
+  margin-left: 10px;
+}
+
+form > div {
+  margin: 2px 0;
+}
+.checks {
+  font-size: small;
+}
+
+#loading {
+  vertical-align: middle;
+  display: none;
+}
+
+#mxaods > * { padding: 0; margin: 0; }
+#mxaods ul {
+  padding-left: 2ch;
+  font-family: monospace;
+}
+#mxaods li {
+  padding-left: 0;
+  margin-left: 0;
+  list-style-type: none;
+}
+#mxaods .dir { color: #729fcf; font-weight: bold; }
+span.show {
+  color: blue;
+  font-size: small;
+  margin-left: 2px;
+  user-select: none;
+}
+span.show:hover{ cursor: pointer; }
+
+#run_time {
+  margin-left: 4px;
+  font-size: small;
+  color: #999;
+  white-space: nowrap;
+}
+
+#table > table {
+  margin: 5px 0;
+  border-collapse: collapse;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  cursor: text;
+}
+#table > table > tr:nth-child(2) { border-bottom: 1px solid #000; }
+#table > table > tr:nth-child(-n+2) > td { text-align: center; }
+#table > table tr.bin:hover { background-color: #eee; }
+#table td {
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+#table td:nth-child(1) { text-align: left; }
+#table td:nth-child(n+2) { text-align: right; }
+
+#fit_plot {
+  margin-top: 15px;
+}
+
+#fit_params {
+  display: flex;
+  font-size: 11px;
+  font-family: monospace;
+  margin-left: 40px;
+}
+
+#lumi_info {
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: monospace;
+  margin: 10px 0;
+}
+#lumi_info > tr:nth-child(1) {
+  border-top: 1px solid black;
+  border-bottom: 1px solid black;
+}
+#lumi_info > tr:last-child {
+  border-bottom: 1px solid black;
+}
+#lumi_info td {
+  padding: 1px 6px;
+}
+
+span.root {
+  text-decoration: overline;
+  white-space: pre;
+}
+span.root:before {
+  content: "\221A";
+  display: inline-block;
+  text-decoration: none;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: left;
+  width: auto;
+  height: auto;
+  padding: 5px;
+  font: 12px sans-serif;
+  background: lightsteelblue;
+  border: 0px;
+  border-radius: 6px;
+  pointer-events: none;
+}
