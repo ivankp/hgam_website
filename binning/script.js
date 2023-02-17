@@ -121,16 +121,18 @@ function state_from_resp(resp) {
 }
 
 function table_from_resp(resp) {
-  let i = 0;
-  $q('table tr', x => { if (++i > 2) x.remove(); });
+  while (table.children.length > 2)
+    table.lastElementChild.remove();
   const n = resp.var_bins.length - 1;
-  for (i=0; i<n; ++i) {
+  for (let i=0; i<n; ++i) {
     const tr = $(table,'tr');
     $(tr,'td').textContent = '['+resp.var_bins[i]+','+resp.var_bins[i+1]+')';
     const sig = resp.sig[i];
     $(tr,'td').textContent = sig;
-    $(tr,'td').textContent = (100*resp.sig_sys[i]/sig).toFixed(2)+'%';
-    $(tr,'td').textContent = (100/Math.sqrt(sig)).toFixed(2)+'%';
+    $(tr,'td').textContent = sig === 0 ? '—' :
+      (100*resp.sig_sys[i]/sig).toFixed(2)+'%';
+    $(tr,'td').textContent = sig === 0 ? '—' :
+      (100/Math.sqrt(sig)).toFixed(2)+'%';
   }
   toggle_unc_cols();
 }
