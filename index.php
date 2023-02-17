@@ -8,13 +8,10 @@ $scripts = [ 'common.js', 'script.js' ];
 include 'head.php';
 ?>
 
-<pre>
-<?php
-print_r($_SERVER);
-// print_r($params);
-// print_r($main_dir);
-?>
-</pre>
+<p>
+You are on the home page.
+Nothing to see here for now.
+</p>
 
 <?php
 include 'tail.php';

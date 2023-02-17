@@ -9,7 +9,6 @@ include '../head.php';
 ?>
 
 <script>
-// const dir = "<?php echo $dir;?>";
 // const mxaods = <?php include 'mxaods.json';?>;
 const lumi_default = 100;
 const vars = [<?php
