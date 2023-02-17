@@ -2,10 +2,11 @@ const state = { }, form = { };
 let table;
 
 function numfmt(x) {
+  if (x === 0) return '0';
   const a = Math.abs(x);
-  return (a <= 1e-3 || 1e4 <= a)
-    ? x.toExponential().replace(/\+/g,'').replace(/\.?0*e/,'e')
-    : x.toString();
+  return (1e-3 < a && a < 1e4)
+    ? x.toString()
+    : x.toExponential().replace(/\+/g,'').replace(/\.?0*e/,'e');
 }
 
 function fix_edges(edges) {
@@ -26,6 +27,17 @@ function join_num(xs,delim) {
   return xs.map(x =>
     Math.abs(x) === Infinity ? (x < 0 ? '-' : '') + 'inf' : x.toString()
   ).join(delim);
+}
+
+function toggle_unc_cols() {
+  const display = ('unc' in state) ? 'table-cell' : 'none';
+  for (const tr of table.children) {
+    const tds = tr.children;
+    for (let i=0; i<tds.length; ++i) {
+      if ([2,3,7,8].includes(i))
+        tds[i].style['display'] = display;
+    }
+  }
 }
 
 function state_from_url() {
@@ -102,15 +114,25 @@ function form_from_state() {
   }
 }
 
-function toggle_unc_cols() {
-  const display = ('unc' in state) ? 'table-cell' : 'none';
-  for (const tr of table.children) {
-    const tds = tr.children;
-    for (let i=0; i<tds.length; ++i) {
-      if ([2,3,7,8].includes(i))
-        tds[i].style['display'] = display;
-    }
+function state_from_resp(resp) {
+  state['lumi'] = resp['lumi'];
+  state['var'] = resp['var'];
+  state['edges'] = fix_edges(resp['var_bins'].map(String));
+}
+
+function table_from_resp(resp) {
+  let i = 0;
+  $q('table tr', x => { if (++i > 2) x.remove(); });
+  const n = resp.var_bins.length - 1;
+  for (i=0; i<n; ++i) {
+    const tr = $(table,'tr');
+    $(tr,'td').textContent = '['+resp.var_bins[i]+','+resp.var_bins[i+1]+')';
+    const sig = resp.sig[i];
+    $(tr,'td').textContent = sig;
+    $(tr,'td').textContent = (100*resp.sig_sys[i]/sig).toFixed(2)+'%';
+    $(tr,'td').textContent = (100/Math.sqrt(sig)).toFixed(2)+'%';
   }
+  toggle_unc_cols();
 }
 
 function main() {
@@ -128,7 +150,7 @@ function main() {
   table = $($id('table'),'table');
   for (row of [
     [ '','[121,129]','syst. unc.','stat. unc.',
-     '[105,121]','[129,160]','[121,129]','syst. unc.','stat. unc.',
+     '[105,121)','(129,160]','[121,129]','syst. unc.','stat. unc.',
      'signif','signif','','reco'],
     ['bin','sig','\u221a\u2211w\u00B2','\u221asig',
      'L bkg','R bkg','bkg','from fit','\u221abkg',
@@ -166,9 +188,16 @@ function main() {
     fetch('req.php'+search_from_state('lumi','var','edges'),{
       referrer: location.origin + location.pathname
     })
-    .then(r => r.json())
-    .then(d => {
-      console.log(d);
+    .then(resp => resp.json())
+    .then(resp => {
+      if ('error' in resp) {
+        alert(resp.error);
+      } else {
+        state_from_resp(resp);
+        url_from_state();
+        form_from_state();
+        table_from_resp(resp);
+      }
     });
   });
 }
