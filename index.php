@@ -6,6 +6,7 @@ $styles = [ 'styles.css' ];
 $scripts = [ 'common.js', 'script.js' ];
 
 include 'head.php';
+include 'nav.php';
 ?>
 
 <p>

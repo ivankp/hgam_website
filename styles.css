@@ -1,5 +1,8 @@
 body, div, span { padding: 0; border: 0; margin: 0; }
-body { background: #fff; }
+body {
+  background: #fff;
+  font-family: sans-serif;
+}
 
 a {
   text-decoration: none;

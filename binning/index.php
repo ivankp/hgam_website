@@ -7,10 +7,7 @@ $scripts = [ '../common.js', 'script.js' ];
 
 include '../head.php';
 ?>
-
 <script>
-// const mxaods = <?php include 'mxaods.json';?>;
-const lumi_default = 100;
 const vars = [<?php
   $file = fopen('vars.txt','r');
   while (!feof($file)) {
@@ -19,8 +16,13 @@ const vars = [<?php
   }
   fclose($file);
 ?>];
+const mxaods = <?php include 'mxaods.json';?>;
 </script>
+<?php
+include '../nav.php';
+?>
 
+<div id="main">
 <div class="row">
 <div class="col" style="min-width:475px;">
 
@@ -79,6 +81,7 @@ See the
     <div id="reco_migr_plot"></div>
   </div>
   <div id="fit_plot"></div>
+</div>
 </div>
 </div>
 

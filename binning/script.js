@@ -202,4 +202,34 @@ function main() {
       }
     });
   });
+
+  // MxAODs
+  $q('#mxaods .show', q => { q.addEventListener('click', e => {
+    const p = q.parentElement;
+    let ul = p.lastElementChild;
+    if (ul.tagName !== 'UL') {
+      ul = (function level(li,xs) {
+        const ul = $(li,'ul');
+        for (const x of xs) {
+          const li = $(ul,'li');
+          if (Array.isArray(x)) {
+            $(li,'span',['dir']).textContent = x[0];
+            level(li,x[1]);
+          } else {
+            li.textContent = x;
+          }
+        }
+        return ul;
+      }(p,mxaods));
+      ul.style.display = 'none';
+    }
+    if (ul.style.display) { // hidden, need to show
+      ul.style.display = null;
+      e.target.textContent = '[hide]';
+    } else { // shown, need to hide
+      ul.style.display = 'none';
+      e.target.textContent = '[show]';
+    }
+  })});
+
 }
