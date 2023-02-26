@@ -214,7 +214,7 @@ function form_from_state() {
   for (let i=0; i<state.vars.length; ++i) {
     const v = state.vars[i];
     const tr = $(vars_table,'tr');
-    const select = $(tr,'td','select',{'name':'x'+(i+1)});
+    const select = $(tr,'td','select',{name:'x'+(i+1)});
     for (const x of vars) {
       const opt = $(select,'option');
       opt.textContent = x;
@@ -357,6 +357,18 @@ function main() {
       url_from_state();
       form_from_state();
 
+      const form_elements = this.querySelectorAll('input,select,button');
+      for (const x of form_elements) x.disabled = true;
+      const loading = $id('loading');
+      loading.style.removeProperty('display');
+      const run_time = $id('run_time');
+      run_time.textContent = '';
+
+      const enable = () => {
+        for (const x of form_elements) x.disabled = false;
+        loading.style['display'] = 'none';
+      };
+
       fetch('req.php'+search_from_state(true),{
         referrer: location.origin + location.pathname
       })
@@ -369,11 +381,15 @@ function main() {
           // url_from_state();
           // form_from_state();
           table_from_resp(resp);
+
+          run_time.textContent = resp.time + ' ms';
         }
+        enable();
       })
       .catch(e => {
         alert('Request failed');
         throw e;
+        enable();
       });
     } catch(e) {
       alert(e.message);
