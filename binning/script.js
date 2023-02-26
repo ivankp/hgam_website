@@ -1,5 +1,6 @@
 const state = { }, form = { };
 let main_table, vars_table;
+let main_table_ncols;
 
 function numfmt(x) {
   if (x === 0) return '0';
@@ -29,10 +30,10 @@ function toggle_unc_cols() {
   const display = ('unc' in state) ? 'table-cell' : 'none';
   for (const tr of main_table.children) {
     const tds = tr.children;
-    for (let i=0; i<tds.length; ++i) {
-      if ([2,3,7,8].includes(i))
-        tds[i].style['display'] = display;
-    }
+    const nvars = tds.length - main_table_ncols;
+    if (nvars >= 0)
+      for (const i of [1,2,6,7])
+        tds[i+nvars].style['display'] = display;
   }
 }
 
@@ -131,7 +132,7 @@ function url_from_state() {
   );
 }
 
-function add_var_buttons_events(b) {
+function add_var_events(b,edges) {
   b[0].addEventListener('click', function(e){
     e.preventDefault();
     if (vars_table.childElementCount <= 1) return;
@@ -147,7 +148,10 @@ function add_var_buttons_events(b) {
     let next = tr.cloneNode(true);
     next.firstElementChild.firstElementChild.selectedIndex =
       tr.firstElementChild.firstElementChild.selectedIndex;
-    add_var_buttons_events(next.getElementsByTagName('button'));
+    add_var_events(
+      next.getElementsByTagName('button'),
+      next.getElementsByTagName('input')[0],
+    );
     tr.after(next);
     fix_form_var_names(next,1);
   });
@@ -168,6 +172,15 @@ function add_var_buttons_events(b) {
       tr.after(prev);
       fix_form_var_names(tr,-1);
     }
+  });
+  // For some reason, button events prevent Enter on input field
+  // from triggering the form submit event
+  edges.addEventListener('keypress', function(e){
+    if (event.key !== 'Enter') return;
+    e.preventDefault();
+    this.closest('form').dispatchEvent(
+      new CustomEvent('submit', {cancelable: true})
+    );
   });
 }
 function fix_form_var_names(tr,d) {
@@ -209,43 +222,86 @@ function form_from_state() {
     }
     let td = $(tr,'td');
     const name = 'x'+(i+1)+'_edges';
-    $(td,'input',{
+    const edges = $(td,'input',{
       name,
       list: name+'_list',
       type: 'text',
       size: 30,
       autocomplete: 'off'
-    }).value = v[1].join(' ');
+    });
+    edges.value = v[1].join(' ');
     $(td,'datalist',{id:name+'_list'});
     const b = ['−','+','↓','↑'].map(x => {
       const b = $(tr,'td','button');
       b.textContent = x;
       return b;
     });
-    add_var_buttons_events(b);
+    add_var_events(b,edges);
   }
 }
 
-function state_from_resp(resp) {
-  state['lumi'] = resp['lumi'];
-  state['var'] = resp['var'];
-  state['edges'] = fix_edges(resp['var_bins'].map(String));
-}
+// function state_from_resp(resp) {
+//   state['lumi'] = resp['lumi'];
+//   state['var'] = resp['var'];
+//   state['edges'] = fix_edges(resp['var_bins'].map(String));
+// }
 
 function table_from_resp(resp) {
-  while (main_table.children.length > 2)
-    main_table.lastElementChild.remove();
-  const n = resp.var_bins.length - 1;
-  for (let i=0; i<n; ++i) {
-    const tr = $(main_table,'tr');
-    $(tr,'td').textContent = '['+resp.var_bins[i]+','+resp.var_bins[i+1]+')';
-    const sig = resp.sig[i];
-    $(tr,'td').textContent = sig;
-    $(tr,'td').textContent = sig === 0 ? '—' :
-      (100*resp.sig_sys[i]/sig).toFixed(2)+'%';
-    $(tr,'td').textContent = sig === 0 ? '—' :
-      (100/Math.sqrt(sig)).toFixed(2)+'%';
+  console.log(resp);
+
+  const rows = main_table.children;
+  while (rows.length > 2)
+    rows[rows.length-1].remove();
+  for (let i=0; i<2; ++i) {
+    const row = rows[i].children;
+    let n = row.length - main_table_ncols;
+    for (; n > 0; --n)
+      row[0].remove();
   }
+
+  if (!('vars' in resp) || resp['vars'].length===0) {
+    console.log(resp);
+    throw Error('no variables in response');
+  }
+  const nvars = resp.vars.length;
+
+  for (let i=nvars; i--; ) {
+    const v = resp.vars[i];
+    rows[0].prepend($(null,'td'));
+    let td = $(null,'td',{style:{'font-size':'small'}});
+    td.textContent = v[0];
+    rows[1].prepend(td);
+  }
+
+  const nn = resp.vars.map(x => x[1].length-1);
+  const ii = nn.map(x => 0);
+  row_loop: for (;;) {
+    const tr = $(main_table,'tr');
+    for (let i=0; i<nvars; ++i) {
+      $(tr,'td').textContent = '['
+        + resp.vars[i][1][ii[i]  ] + ','
+        + resp.vars[i][1][ii[i]+1] + ')';
+    }
+
+    for (let i=0;;) {
+      if (++ii[i] < nn[i]) break;
+      ii[i] = 0;
+      if (++i === nvars) break row_loop;
+    }
+  }
+
+  // const n = resp.var_bins.length - 1;
+  // for (let i=0; i<n; ++i) {
+  //   const tr = $(main_table,'tr');
+  //   $(tr,'td').textContent = '['+resp.var_bins[i]+','+resp.var_bins[i+1]+')';
+  //   const sig = resp.sig[i];
+  //   $(tr,'td').textContent = sig;
+  //   $(tr,'td').textContent = sig === 0 ? '—' :
+  //     (100*resp.sig_sys[i]/sig).toFixed(2)+'%';
+  //   $(tr,'td').textContent = sig === 0 ? '—' :
+  //     (100/Math.sqrt(sig)).toFixed(2)+'%';
+  // }
+
   toggle_unc_cols();
 }
 
@@ -263,10 +319,10 @@ function main() {
 
   // create table columns
   for (row of [
-    [ '','[121,129]','syst. unc.','stat. unc.',
+    ['[121,129]','syst. unc.','stat. unc.',
      '[105,121)','(129,160]','[121,129]','syst. unc.','stat. unc.',
      'signif','signif','','reco'],
-    ['bin','sig','\u221a\u2211w\u00B2','\u221asig',
+    ['sig','\u221a\u2211w\u00B2','\u221asig',
      'L bkg','R bkg','bkg','from fit','\u221abkg',
      's/\u221a(s+b)','Cowan','s/(s+b)','purity']
   ]) {
@@ -275,7 +331,8 @@ function main() {
       $(tr,'td').textContent = col;
   }
   { const tds = main_table.firstChild.children;
-    for (let i=0; i<9; ++i)
+    main_table_ncols = tds.length;
+    for (let i=0; i<8; ++i)
       tds[i].style['font-size'] = 'small';
   }
   toggle_unc_cols();
@@ -293,7 +350,7 @@ function main() {
     });
   }
 
-  $q('form')[0].addEventListener('submit', e => {
+  $q('form')[0].addEventListener('submit', function(e){
     e.preventDefault();
     try {
       state_from_form();
@@ -308,11 +365,10 @@ function main() {
         if ('error' in resp) {
           alert(resp.error);
         } else {
-          console.log(resp);
           // state_from_resp(resp);
           // url_from_state();
           // form_from_state();
-          // table_from_resp(resp);
+          table_from_resp(resp);
         }
       })
       .catch(e => {
@@ -321,7 +377,6 @@ function main() {
       });
     } catch(e) {
       alert(e.message);
-      throw e;
     }
   });
 
