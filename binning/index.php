@@ -35,12 +35,7 @@ include '../nav.php';
     <label>Luminosity:<input type="text" name="lumi" size="6">ifb</label>
     <span id="true_lumi"></span>
   </div><div>
-    <select name="var"></select>
-    <input list="edges_list" type="text" name="edges" size="30" autocomplete="off">
-    <datalist id="edges_list"></datalist>
-    <input type="submit" value="Rebin">
-    <img id="loading" src="../img/loading.gif" alt="loading">
-    <span id="run_time"></span>
+    <table id="vars_table"></table>
   </div><div class="checks">
     <label><input name="click" type="checkbox">
       click row to show backround fit</label>
@@ -48,7 +43,8 @@ include '../nav.php';
       show uncertainties</label>
   </div>
 </form>
-<div id="table"></div>
+
+<div id="main_table"></div>
 
 <div class="note">
 <p>sig - number of signal events, taken from Monte Carlo.</p>

@@ -41,6 +41,15 @@ const $q = (q,f=null) => {
   return xs;
 };
 
+const clear = p => {
+  for (;;) {
+    const x = p.lastChild;
+    if (!x) break;
+    x.remove();
+  }
+  return p;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   for (const a of document.querySelectorAll("nav a")) {
     if (page == a.pathname.replace(/^\/+|\/+$/g,'')) {

@@ -1,37 +1,33 @@
 const state = { }, form = { };
-let table;
+let main_table, vars_table;
 
 function numfmt(x) {
   if (x === 0) return '0';
   const a = Math.abs(x);
-  return (1e-3 < a && a < 1e4)
-    ? x.toString()
-    : x.toExponential().replace(/\+/g,'').replace(/\.?0*e/,'e');
+  if (a === Infinity) return x < 0 ? '-inf' : 'inf';
+  if (1e-3 < a && a < 1e4) return x.toString();
+  return x.toExponential().replace(/\+/g,'').replace(/\.?0*e/,'e');
 }
 
 function fix_edges(edges) {
+  if (edges.constructor !== Array || edges.length === 0) return [ ];
   return edges
     .reduce((a,x) => {
-      const neg = x[0] === '-';
-      if (neg) x = x.slice(1);
-      if (x.match(/^(-)?inf(?:(?:ini)?ty)?$/i) || x === '∞') x = Infinity;
-      else x = parseFloat(x);
-      if (!isNaN(x)) a.push(numfmt(neg ? -x : x));
+      let f = parseFloat(x);
+      if (Number.isNaN(f)) {
+        if (x.match(/^-?(?:inf(?:(?:ini)?ty)?|∞)$/i)) f = Infinity;
+        if (x[0]==='-') f = -f;
+      }
+      if (!Number.isNaN(f)) a.push(f);
       return a;
     },[])
     .sort((a,b) => a-b)
     .filter((x, i, a) => !i || x != a[i-1]); // unique
 }
 
-function join_num(xs,delim) {
-  return xs.map(x =>
-    Math.abs(x) === Infinity ? (x < 0 ? '-' : '') + 'inf' : x.toString()
-  ).join(delim);
-}
-
 function toggle_unc_cols() {
   const display = ('unc' in state) ? 'table-cell' : 'none';
-  for (const tr of table.children) {
+  for (const tr of main_table.children) {
     const tds = tr.children;
     for (let i=0; i<tds.length; ++i) {
       if ([2,3,7,8].includes(i))
@@ -41,33 +37,46 @@ function toggle_unc_cols() {
 }
 
 function state_from_url() {
-  { let s = location.search;
-    if (s.startsWith('?')) s = s.slice(1);
-    if (s.length) for (let x of s.split('&')) {
-      const i = x.indexOf('=');
-      x = i === -1 ? [ x, null ] : [ x.slice(0,i), x.slice(i+1) ];
-      if (x[0] in form) state[x[0]] = x[1];
+  let xi = { };
+  let q = location.search;
+  if (q.startsWith('?')) q = q.slice(1);
+  if (q.length) {
+    for (const x of q.split('&')) {
+      let i = x.indexOf('=');
+      const [k,v] = i === -1 ? [ x, '' ] : [ x.slice(0,i), x.slice(i+1) ];
+      if (['lumi'].includes(k)) {
+        state[k] = v;
+      } else if (['unc','click'].includes(k)) {
+        state[k] = null;
+      } else if (k.match(/x[1-9]/)) {
+        if (v==null || v.length==0) continue;
+        const edges = v.split('+');
+        if (!vars.includes(edges[0])) continue;
+        if (!(edges[0] in xi))
+          xi[edges[0]] = [
+            parseInt(k.slice(1)),
+            fix_edges(edges.slice(1)).map(numfmt)
+          ];
+      }
     }
   }
 
-  let lumi = parseFloat(state['lumi']);
-  if (isNaN(lumi)) lumi = lumi_default;
-  state['lumi'] = lumi;
+  xi = Object.entries(xi);
+  state.vars = (
+    xi.length > 0
+    ? xi.map(x => [x[1][0],x[0],x[1][1]])
+        .sort()
+        .map((x,i) => [x[1],x[2]])
+    : [[vars[0],[]]]
+  );
 
-  if (!('var' in state) || !vars.includes(state['var']))
-    state['var'] = vars[0];
-
-  let edges = state['edges'];
-  edges = edges == null || edges.length === 0
-    ? [ ] : fix_edges(edges.split('+'));
-  state['edges'] = edges;
+  let lumi = parseFloat(state.lumi);
+  state.lumi = isNaN(lumi) ? '' : lumi;
 }
 
 function state_from_form() {
   let lumi = parseFloat(form['lumi'].value);
-  if (isNaN(lumi)) {
-    lumi = lumi_default;
-  }
+  if (isNaN(lumi)) lumi = '';
   state['lumi'] = lumi;
 
   let v = form['var'].value;
@@ -80,17 +89,23 @@ function state_from_form() {
   state['edges'] = edges;
 }
 
-function search_from_state(...keys) {
+function search_from_state(req=false) {
   let search = '';
-  for (let [k,v] of ( m =>
-    keys.length === 0 ? m : m.filter( ([key]) => keys.includes(key) )
-  )(Object.entries(state)) ) {
-    search += (search ? '&' : '?') + k;
-    if (v !== null) {
-      if (v.constructor === Array) v = join_num(v,'+');
-      search += '=' + v;
-    }
+  const d = () => search.length===0 ? '?' : '&';
+
+  const lumi = state['lumi'];
+  if (lumi) search += d() + 'lumi=' + lumi;
+
+  for (let i=0; i<state.vars.length; ++i) {
+    const [name,edges] = state.vars[i];
+    search += d() + 'x' + (i+1) + '=' + name;
+    for (const e of edges) search += '+' + e;
   }
+
+  if (!req)
+    for (const k of ['unc','click'])
+      if (k in state) search += d() + k;
+
   return search;
 }
 function url_from_state() {
@@ -101,15 +116,49 @@ function url_from_state() {
   );
 }
 
+function add_var_row(i) {
+  const v = state.vars[i];
+  const tr = $(vars_table,'tr');
+  const select = $(tr,'td','select',{'name':'x'+(i+1)});
+  for (const x of vars) {
+    const opt = $(select,'option');
+    opt.textContent = x;
+    if (x === v[0]) opt.selected = true;
+  }
+  let td = $(tr,'td');
+  const name = 'x'+(i+1)+'edges';
+  $(td,'input',{
+    name,
+    list: name+'_list',
+    type: 'text',
+    size: 30,
+    autocomplete: 'off'
+  }).value = v[1].join(' ');
+  $(td,'datalist',{id:name+'_list'});
+  for (const x of ['−','+','↓','↑'])
+    $(tr,'td','button').textContent = x;
+  return tr;
+}
+
 function form_from_state() {
-  for (const [name,x] of Object.entries(form)) {
-    if (x.type === 'checkbox') {
-      x.checked = name in state;
-    } else {
-      let v = state[name];
-      if (v == null) v = '';
-      else if (v.constructor === Array) v = join_num(v,' ');
-      x.value = v;
+  for (const x of ['unc','click'])
+    form[x].checked = x in state;
+
+  for (const x of ['lumi'])
+    form[x].value = state[x];
+
+  clear(vars_table);
+  for (let i=0; i<state.vars.length; ++i) {
+    const tr = add_var_row(i);
+    if (i===0) {
+      $(tr,'td','input',{type:'submit',value:'Rebin'});
+      $(tr,'td','img',{
+        id: 'loading',
+        src: '../img/loading.gif',
+        alt: 'loading',
+        style: { display: 'none' }
+      });
+      $(tr,'td','span',{id:'run_time'});
     }
   }
 }
@@ -121,11 +170,11 @@ function state_from_resp(resp) {
 }
 
 function table_from_resp(resp) {
-  while (table.children.length > 2)
-    table.lastElementChild.remove();
+  while (main_table.children.length > 2)
+    main_table.lastElementChild.remove();
   const n = resp.var_bins.length - 1;
   for (let i=0; i<n; ++i) {
-    const tr = $(table,'tr');
+    const tr = $(main_table,'tr');
     $(tr,'td').textContent = '['+resp.var_bins[i]+','+resp.var_bins[i+1]+')';
     const sig = resp.sig[i];
     $(tr,'td').textContent = sig;
@@ -140,8 +189,9 @@ function table_from_resp(resp) {
 function main() {
   // collect named form elements
   $q('form [name]', x => { form[x.name] = x; });
-  for (const v of vars)
-    $(form['var'],'option').textContent = v;
+
+  vars_table = $id('vars_table');
+  main_table = $($id('main_table'),'table');
 
   // get state from url
   state_from_url();
@@ -149,7 +199,6 @@ function main() {
   form_from_state();
 
   // create table columns
-  table = $($id('table'),'table');
   for (row of [
     [ '','[121,129]','syst. unc.','stat. unc.',
      '[105,121)','(129,160]','[121,129]','syst. unc.','stat. unc.',
@@ -158,11 +207,11 @@ function main() {
      'L bkg','R bkg','bkg','from fit','\u221abkg',
      's/\u221a(s+b)','Cowan','s/(s+b)','purity']
   ]) {
-    const tr = $(table,'tr');
+    const tr = $(main_table,'tr');
     for (col of row)
       $(tr,'td').textContent = col;
   }
-  { const tds = table.firstChild.children;
+  { const tds = main_table.firstChild.children;
     for (let i=0; i<9; ++i)
       tds[i].style['font-size'] = 'small';
   }
@@ -183,24 +232,25 @@ function main() {
 
   $q('form')[0].addEventListener('submit', e => {
     e.preventDefault();
-    state_from_form();
-    url_from_state();
-    form_from_state();
-
-    fetch('req.php'+search_from_state('lumi','var','edges'),{
-      referrer: location.origin + location.pathname
-    })
-    .then(resp => resp.json())
-    .then(resp => {
-      if ('error' in resp) {
-        alert(resp.error);
-      } else {
-        state_from_resp(resp);
-        url_from_state();
-        form_from_state();
-        table_from_resp(resp);
-      }
-    });
+    console.log(e);
+    // state_from_form();
+    // url_from_state();
+    // form_from_state();
+    //
+    // fetch('req.php'+search_from_state(true),{
+    //   referrer: location.origin + location.pathname
+    // })
+    // .then(resp => resp.json())
+    // .then(resp => {
+    //   if ('error' in resp) {
+    //     alert(resp.error);
+    //   } else {
+    //     state_from_resp(resp);
+    //     url_from_state();
+    //     form_from_state();
+    //     table_from_resp(resp);
+    //   }
+    // });
   });
 
   // MxAODs

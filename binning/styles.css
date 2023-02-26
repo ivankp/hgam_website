@@ -76,22 +76,22 @@ span.show:hover{ cursor: pointer; }
   white-space: nowrap;
 }
 
-#table > table {
+#main_table > table {
   margin: 5px 0;
   border-collapse: collapse;
   border-top: 1px solid #000;
   border-bottom: 1px solid #000;
   cursor: text;
 }
-#table > table > tr:nth-child(2) { border-bottom: 1px solid #000; }
-#table > table > tr:nth-child(-n+2) > td { text-align: center; }
-#table > table tr.bin:hover { background-color: #eee; }
-#table td {
+#main_table > table > tr:nth-child(2) { border-bottom: 1px solid #000; }
+#main_table > table > tr:nth-child(-n+2) > td { text-align: center; }
+#main_table > table tr.bin:hover { background-color: #eee; }
+#main_table td {
   padding: 1px 6px;
   white-space: nowrap;
 }
-#table td:nth-child(1) { text-align: left; }
-#table td:nth-child(n+2) { text-align: right; }
+#main_table td:nth-child(1) { text-align: left; }
+#main_table td:nth-child(n+2) { text-align: right; }
 
 #fit_plot {
   margin-top: 15px;
