@@ -1,6 +1,6 @@
 <?php
 
-$title = 'H&rightarrow;&gamma;&gamma; binning tool';
+$title = 'H&rarr;&gamma;&gamma; binning tool';
 $icon = '../favicon.ico';
 $styles = [ '../styles.css', 'styles.css' ];
 $scripts = [ '../common.js', 'script.js' ];
@@ -27,7 +27,7 @@ include '../nav.php';
 <div class="col" style="min-width:475px;">
 
 <div class="top">
-<p>H&rightarrow;&gamma;&gamma; binning estimator</p>
+<p>H&rarr;&gamma;&gamma; binning estimator</p>
 </div>
 
 <form>
@@ -35,7 +35,12 @@ include '../nav.php';
     <label>Luminosity:<input type="text" name="lumi" size="6">ifb</label>
     <span id="true_lumi"></span>
   </div><div>
-    <table id="vars_table"></table>
+    <table id="vars_table_wrap"><tr>
+      <td><table id="vars_table"></table></td>
+      <td><input type="submit" value="Rebin"></td>
+      <td><img id="loading" src="../img/loading.gif" alt="loading" style="display:none;"></td>
+      <td><span id="run_time"></span></td>
+    </tr></table>
   </div><div class="checks">
     <label><input name="click" type="checkbox">
       click row to show backround fit</label>

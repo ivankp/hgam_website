@@ -93,6 +93,11 @@ span.show:hover{ cursor: pointer; }
 #main_table td:nth-child(1) { text-align: left; }
 #main_table td:nth-child(n+2) { text-align: right; }
 
+#vars_table, #vars_table_wrap {
+  border-collapse: collapse;
+}
+#vars_table_wrap td { vertical-align: baseline; }
+
 #fit_plot {
   margin-top: 15px;
 }

@@ -75,18 +75,33 @@ function state_from_url() {
 }
 
 function state_from_form() {
-  let lumi = parseFloat(form['lumi'].value);
-  if (isNaN(lumi)) lumi = '';
-  state['lumi'] = lumi;
-
-  let v = form['var'].value;
-  if (!vars.includes(v)) {
-    v = vars[0];
+  const unique_vars = { };
+  const form_vars = [ ];
+  $q('form [name^="x"]', x => { form_vars.push(x); });
+  form_vars.sort((a,b) => {
+    a = a.name;
+    b = b.name;
+    return a < b ? -1 : (a > b ? 1 : 0);
+  });
+  state_vars = [ ];
+  for (let i=0; i<form_vars.length; i+=2) {
+    const name = form_vars[i].value;
+    if (name in unique_vars)
+      throw new Error(name+' selected multiple times');
+    else unique_vars[name] = null;
+    const edges = fix_edges(form_vars[i+1].value.split(' ')).map(numfmt);
+    if (edges.length < 2) {
+      form_vars[i+1].value = edges.join(' ');
+      throw new Error('fewer than 2 edges for '+name);
+    }
+    state_vars.push([ name, edges ]);
   }
-  state['var'] = v;
 
-  let edges = fix_edges(form['edges'].value.split(' '));
-  state['edges'] = edges;
+  let lumi = parseFloat(form.lumi.value);
+  if (Number.isNaN(lumi)) lumi = '';
+
+  state.vars = state_vars;
+  state.lumi = lumi;
 }
 
 function search_from_state(req=false) {
@@ -116,28 +131,63 @@ function url_from_state() {
   );
 }
 
-function add_var_row(i) {
-  const v = state.vars[i];
-  const tr = $(vars_table,'tr');
-  const select = $(tr,'td','select',{'name':'x'+(i+1)});
-  for (const x of vars) {
-    const opt = $(select,'option');
-    opt.textContent = x;
-    if (x === v[0]) opt.selected = true;
+function add_var_buttons_events(b) {
+  b[0].addEventListener('click', function(e){
+    e.preventDefault();
+    if (vars_table.childElementCount <= 1) return;
+    const tr = this.closest('tr');
+    const next = tr.nextElementSibling;
+    tr.remove();
+    if (next) fix_form_var_names(next,-1);
+  });
+  b[1].addEventListener('click', function(e){
+    e.preventDefault();
+    if (vars_table.childElementCount >= 9) return;
+    const tr = this.closest('tr');
+    let next = tr.cloneNode(true);
+    next.firstElementChild.firstElementChild.selectedIndex =
+      tr.firstElementChild.firstElementChild.selectedIndex;
+    add_var_buttons_events(next.getElementsByTagName('button'));
+    tr.after(next);
+    fix_form_var_names(next,1);
+  });
+  b[2].addEventListener('click', function(e){
+    e.preventDefault();
+    const tr = this.closest('tr');
+    const next = tr.nextElementSibling;
+    if (next) {
+      next.after(tr);
+      fix_form_var_names(next,-1);
+    }
+  });
+  b[3].addEventListener('click', function(e){
+    e.preventDefault();
+    const tr = this.closest('tr');
+    const prev = tr.previousElementSibling;
+    if (prev) {
+      tr.after(prev);
+      fix_form_var_names(tr,-1);
+    }
+  });
+}
+function fix_form_var_names(tr,d) {
+  let i = 0;
+  while (tr) {
+    for (let td = tr.firstElementChild; td; td = td.nextElementSibling) {
+      const x = td.firstElementChild;
+      let name = x.name;
+      if (!name) continue;
+      if (i===0) i = parseInt(name[1])+d;
+      x.name = 'x'+i+name.slice(2);
+      name = x.getAttribute('list');
+      if (!name) continue;
+      name = 'x'+i+name.slice(2);
+      x.setAttribute('list',name);
+      x.nextElementSibling.id = name;
+    }
+    ++i;
+    tr = tr.nextElementSibling;
   }
-  let td = $(tr,'td');
-  const name = 'x'+(i+1)+'edges';
-  $(td,'input',{
-    name,
-    list: name+'_list',
-    type: 'text',
-    size: 30,
-    autocomplete: 'off'
-  }).value = v[1].join(' ');
-  $(td,'datalist',{id:name+'_list'});
-  for (const x of ['−','+','↓','↑'])
-    $(tr,'td','button').textContent = x;
-  return tr;
 }
 
 function form_from_state() {
@@ -149,17 +199,30 @@ function form_from_state() {
 
   clear(vars_table);
   for (let i=0; i<state.vars.length; ++i) {
-    const tr = add_var_row(i);
-    if (i===0) {
-      $(tr,'td','input',{type:'submit',value:'Rebin'});
-      $(tr,'td','img',{
-        id: 'loading',
-        src: '../img/loading.gif',
-        alt: 'loading',
-        style: { display: 'none' }
-      });
-      $(tr,'td','span',{id:'run_time'});
+    const v = state.vars[i];
+    const tr = $(vars_table,'tr');
+    const select = $(tr,'td','select',{'name':'x'+(i+1)});
+    for (const x of vars) {
+      const opt = $(select,'option');
+      opt.textContent = x;
+      if (x === v[0]) opt.selected = true;
     }
+    let td = $(tr,'td');
+    const name = 'x'+(i+1)+'_edges';
+    $(td,'input',{
+      name,
+      list: name+'_list',
+      type: 'text',
+      size: 30,
+      autocomplete: 'off'
+    }).value = v[1].join(' ');
+    $(td,'datalist',{id:name+'_list'});
+    const b = ['−','+','↓','↑'].map(x => {
+      const b = $(tr,'td','button');
+      b.textContent = x;
+      return b;
+    });
+    add_var_buttons_events(b);
   }
 }
 
@@ -232,25 +295,34 @@ function main() {
 
   $q('form')[0].addEventListener('submit', e => {
     e.preventDefault();
-    console.log(e);
-    // state_from_form();
-    // url_from_state();
-    // form_from_state();
-    //
-    // fetch('req.php'+search_from_state(true),{
-    //   referrer: location.origin + location.pathname
-    // })
-    // .then(resp => resp.json())
-    // .then(resp => {
-    //   if ('error' in resp) {
-    //     alert(resp.error);
-    //   } else {
-    //     state_from_resp(resp);
-    //     url_from_state();
-    //     form_from_state();
-    //     table_from_resp(resp);
-    //   }
-    // });
+    try {
+      state_from_form();
+      url_from_state();
+      form_from_state();
+
+      fetch('req.php'+search_from_state(true),{
+        referrer: location.origin + location.pathname
+      })
+      .then(resp => resp.json())
+      .then(resp => {
+        if ('error' in resp) {
+          alert(resp.error);
+        } else {
+          console.log(resp);
+          // state_from_resp(resp);
+          // url_from_state();
+          // form_from_state();
+          // table_from_resp(resp);
+        }
+      })
+      .catch(e => {
+        alert('Request failed');
+        throw e;
+      });
+    } catch(e) {
+      alert(e.message);
+      throw e;
+    }
   });
 
   // MxAODs
