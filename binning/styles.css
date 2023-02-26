@@ -126,14 +126,8 @@ span.show:hover{ cursor: pointer; }
   padding: 1px 6px;
 }
 
-span.root {
+span.bar {
   text-decoration: overline;
-  white-space: pre;
-}
-span.root:before {
-  content: "\221A";
-  display: inline-block;
-  text-decoration: none;
 }
 
 div.tooltip {

@@ -66,7 +66,7 @@ A second degree polynomial is fit to
 <span class="math">log</span>s of bin counts.
 </p>
 <p>The second significance column labelled Cowan is calculated using equation
-<span class="root math">2[(s+b)log(1+s/b)-s]</span>.<br>
+<span class="math">&radic;<span class="bar">2[(s+b)log(1+s/b)-s]</span></span>.<br>
 See the
 <a href="https://www.pp.rhul.ac.uk/~cowan/stat/notes/SigCalcNote.pdf"
    target="_blank"
