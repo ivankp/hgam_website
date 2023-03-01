@@ -1,6 +1,7 @@
 const state = { }, form = { };
 let main_table, vars_table;
 let main_table_ncols;
+let var_names;
 
 function numfmt(x) {
   if (x === 0) return '0';
@@ -63,7 +64,7 @@ function state_from_url() {
       } else if (k.match(/x[1-9]/)) {
         if (v==null || v.length==0) continue;
         const edges = v.split('+');
-        if (!vars.includes(edges[0])) continue;
+        if (!var_names.includes(edges[0])) continue;
         if (!(edges[0] in xi))
           xi[edges[0]] = [
             parseInt(k.slice(1)),
@@ -79,7 +80,7 @@ function state_from_url() {
     ? xi.map(x => [x[1][0],x[0],x[1][1]])
         .sort()
         .map((x,i) => [x[1],x[2]])
-    : [[vars[0],[]]]
+    : [[var_names[0],[]]]
   );
 
   let lumi = parseFloat(state.lumi);
@@ -230,7 +231,7 @@ function form_from_state() {
     const v = state.vars[i];
     const tr = $(vars_table,'tr');
     const select = $(tr,'td','select',{name:'x'+(i+1)});
-    for (const x of vars) {
+    for (const x of var_names) {
       const opt = $(select,'option');
       opt.textContent = x;
       if (x === v[0]) opt.selected = true;
@@ -366,6 +367,7 @@ function table_from_resp(resp) {
 }
 
 function main() {
+  var_names = binning.map(x => x[0]);
   // collect named form elements
   $q('form [name]', x => { form[x.name] = x; });
 

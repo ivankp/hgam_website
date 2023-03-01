@@ -8,14 +8,7 @@ $scripts = [ '../common.js', 'script.js' ];
 include '../head.php';
 ?>
 <script>
-const vars = [<?php
-  $file = fopen('vars.txt','r');
-  while (!feof($file)) {
-    if (preg_match('/^(\w+)\s*$/',fgets($file),$m))
-      echo '"'.$m[1].'",';
-  }
-  fclose($file);
-?>];
+const binning = <?php passthru('./vars vars.txt');?>;
 const mxaods = <?php include 'mxaods.json';?>;
 </script>
 <?php
