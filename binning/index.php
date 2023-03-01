@@ -33,7 +33,7 @@ include '../nav.php';
 <form>
   <div>
     <label>Luminosity:<input type="text" name="lumi" size="6">ifb</label>
-    <span id="true_lumi"></span>
+    <span id="data_lumi"></span>
   </div><div>
     <table id="vars_table_wrap"><tr>
       <td><table id="vars_table"></table></td>
@@ -59,14 +59,14 @@ sidebands.</p>
 <p>Background in the signal region is estimated by a fit to the
 <span class="math">m_yy</span> sidebands.<br>
 The fit is done using a weighted linear least-squares
-<a href="https://www.gnu.org/software/gsl/doc/html/lls.html#c.gsl_multifit_wlinear"
+<a href="https://github.com/ivankp/hgam_website_binning/blob/main/src/least_squares.c"
    target="_blank"
 >algorithm</a>.<br>
 A second degree polynomial is fit to
 <span class="math">log</span>s of bin counts.
 </p>
 <p>The second significance column labelled Cowan is calculated using equation
-<span class="math">&radic;<span class="bar">2[(s+b)log(1+s/b)-s]</span></span>.<br>
+<span class="math nowrap">&radic;<span class="bar">2[(s+b)log(1+s/b)-s]</span></span>.<br>
 See the
 <a href="https://www.pp.rhul.ac.uk/~cowan/stat/notes/SigCalcNote.pdf"
    target="_blank"

@@ -33,9 +33,11 @@ input[name="edges"] {
   text-align: left;
 }
 
-#true_lumi {
+#data_lumi {
   font-size: small;
-  margin-left: 10px;
+  margin-left: 4px;
+  color: #777;
+  white-space: nowrap;
 }
 
 form > div {

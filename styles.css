@@ -75,3 +75,5 @@ nav ul li:hover > ul {
 
 .math { font-style: italic; }
 .mathrm { font-style: normal; }
+
+.nowrap { white-space: nowrap; }

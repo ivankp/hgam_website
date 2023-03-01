@@ -143,6 +143,16 @@ function url_from_state() {
   );
 }
 
+function submit_on_enter(field) {
+  field.addEventListener('keypress', function(e){
+    if (event.key !== 'Enter') return;
+    e.preventDefault();
+    this.closest('form').dispatchEvent(
+      new CustomEvent('submit', {cancelable: true})
+    );
+  });
+}
+
 function add_var_events(b,edges) {
   b[0].addEventListener('click', function(e){
     e.preventDefault();
@@ -186,13 +196,7 @@ function add_var_events(b,edges) {
   });
   // For some reason, button events prevent Enter on input field
   // from triggering the form submit event
-  edges.addEventListener('keypress', function(e){
-    if (event.key !== 'Enter') return;
-    e.preventDefault();
-    this.closest('form').dispatchEvent(
-      new CustomEvent('submit', {cancelable: true})
-    );
-  });
+  submit_on_enter(edges);
 }
 function fix_form_var_names(tr,d) {
   let i = 0;
@@ -305,10 +309,11 @@ function table_from_resp(resp) {
       $(tr,'td').textContent = b[0].toFixed(prec);
       $(tr,'td').textContent = b[2].toFixed(prec);
       b = b[1];
-      $(tr,'td').textContent = b.toFixed(prec);
+      $(tr,'td').textContent = b.toFixed(2);
 
       $(tr,'td').textContent = 'TODO';
-      $(tr,'td').textContent = Math.sqrt(b);
+      $(tr,'td').textContent = b === 0 ? '—' :
+        (100/Math.sqrt(b)).toFixed(2)+'%'; // √n/n = 1/√n
 
       // significance
       let signif = s/Math.sqrt(s+b);
@@ -352,12 +357,19 @@ function table_from_resp(resp) {
     }
   }
 
+  form.lumi.value = resp.lumi[0];
+
+  $id('data_lumi').textContent =
+    resp.lumi.length === 2 ? `(scaled from ${resp.lumi[1]} ifb)` : '';
+
   toggle_unc_cols();
 }
 
 function main() {
   // collect named form elements
   $q('form [name]', x => { form[x.name] = x; });
+
+  submit_on_enter(form['lumi']);
 
   vars_table = $id('vars_table');
   main_table = $($id('main_table'),'table');

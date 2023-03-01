@@ -15,7 +15,7 @@ $page = substr(dirname($_SERVER['SCRIPT_NAME']),1);
 <?php
   if (!empty($styles)) {
     foreach ($styles as &$x) {
-      if (file_exists($x)) {
+      if (preg_match('#^https?://#',$x) || file_exists($x)) {
         echo '<link rel="stylesheet" href="',$x,'" type="text/css">',"\n";
       }
     }
@@ -27,7 +27,7 @@ $page = substr(dirname($_SERVER['SCRIPT_NAME']),1);
 <?php
   if (!empty($styles)) {
     foreach ($scripts as &$x) {
-      if (file_exists($x)) {
+      if (preg_match('#^https?://#',$x) || file_exists($x)) {
         echo '<script src="',$x,'"></script>',"\n";
       }
     }
