@@ -82,6 +82,7 @@ span.show:hover{ cursor: pointer; }
   border-top: 1px solid #000;
   border-bottom: 1px solid #000;
   cursor: text;
+  font-family: 'Times New Roman', serif;
 }
 #main_table > table > tr:nth-child(2) { border-bottom: 1px solid #000; }
 #main_table > table > tr:nth-child(-n+2) > td { text-align: center; }
