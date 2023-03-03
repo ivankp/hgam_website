@@ -1,7 +1,7 @@
 const state = { }, form = { };
 let main_table, vars_table;
 let main_table_ncols;
-let vars_names, default_var;
+let vars_names;
 
 function numfmt(x) {
   if (x === 0) return '0';
@@ -74,14 +74,17 @@ function state_from_url() {
     }
   }
 
-  // number variables in url sequentially starting from 1
+  // collect selected variables or use default
   xi = Object.entries(xi);
   state.vars = (
     xi.length > 0
     ? xi.map(x => [x[1][0],x[0],x[1][1]])
         .sort()
         .map((x,i) => [x[1],x[2]])
-    : [[default_var,[]]]
+    : [[
+      'pT_yy' in binning ? 'pT_yy' : vars_names[0],
+      []
+    ]]
   );
 
   let lumi = parseFloat(state.lumi);
@@ -155,8 +158,19 @@ function submit_on_enter(field) {
   });
 }
 
-function add_var_events(b,edges) {
-  b[0].addEventListener('click', function(e){
+function add_var_events(select,edges,datalist,buttons) {
+  select.addEventListener('change', function(e){
+    clear(datalist);
+    let first = true;
+    for (const [label,value] of binning[this.value]) {
+      $(datalist,'option',{label,value});
+      if (first) {
+        first = false;
+        edges.value = value;
+      }
+    }
+  });
+  buttons[0].addEventListener('click', function(e){
     e.preventDefault();
     if (vars_table.childElementCount <= 1) return;
     const tr = this.closest('tr');
@@ -164,7 +178,7 @@ function add_var_events(b,edges) {
     tr.remove();
     if (next) fix_form_var_names(next,-1);
   });
-  b[1].addEventListener('click', function(e){
+  buttons[1].addEventListener('click', function(e){
     e.preventDefault();
     if (vars_table.childElementCount >= 9) return;
     const tr = this.closest('tr');
@@ -172,13 +186,15 @@ function add_var_events(b,edges) {
     next.firstElementChild.firstElementChild.selectedIndex =
       tr.firstElementChild.firstElementChild.selectedIndex;
     add_var_events(
-      next.getElementsByTagName('button'),
+      next.getElementsByTagName('select')[0],
       next.getElementsByTagName('input')[0],
+      next.getElementsByTagName('datalist')[0],
+      next.getElementsByTagName('button')
     );
     tr.after(next);
     fix_form_var_names(next,1);
   });
-  b[2].addEventListener('click', function(e){
+  buttons[2].addEventListener('click', function(e){
     e.preventDefault();
     const tr = this.closest('tr');
     const next = tr.nextElementSibling;
@@ -187,7 +203,7 @@ function add_var_events(b,edges) {
       fix_form_var_names(next,-1);
     }
   });
-  b[3].addEventListener('click', function(e){
+  buttons[3].addEventListener('click', function(e){
     e.preventDefault();
     const tr = this.closest('tr');
     const prev = tr.previousElementSibling;
@@ -247,13 +263,14 @@ function form_from_state() {
       autocomplete: 'off'
     });
     edges.value = v[1].join(' ');
-    $(td,'datalist',{id:name+'_list'});
-    const b = ['−','+','↓','↑'].map(x => {
+    const datalist = $(td,'datalist',{id:name+'_list'});
+    const buttons = ['−','+','↓','↑'].map(x => {
       const b = $(tr,'td','button');
       b.textContent = x;
       return b;
     });
-    add_var_events(b,edges);
+    add_var_events(select,edges,datalist,buttons);
+    select.dispatchEvent(new CustomEvent('change'));
   }
 }
 
@@ -369,11 +386,10 @@ function table_from_resp(resp) {
 
 function main() {
   vars_names = Object.keys(binning).sort((a,b) => {
-    a = a.name.toLowerCase();
-    b = b.name.toLowerCase();
+    a = a.toLowerCase();
+    b = b.toLowerCase();
     return a < b ? -1 : (a > b ? 1 : 0);
   });
-  default_var = 'pT_yy' in binning ? 'pT_yy' : vars_names[0];
 
   // collect named form elements
   $q('form [name]', x => { form[x.name] = x; });
@@ -421,7 +437,8 @@ function main() {
     });
   }
 
-  $q('form')[0].addEventListener('submit', function(e){
+  const form_element = $q('form')[0];
+  form_element.addEventListener('submit', function(e){
     e.preventDefault();
     try {
       state_from_form();
@@ -496,4 +513,7 @@ function main() {
     }
   })});
 
+  form_element.dispatchEvent(
+    new CustomEvent('submit', {cancelable: true})
+  );
 }

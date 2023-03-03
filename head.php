@@ -10,7 +10,10 @@ $page = substr(dirname($_SERVER['SCRIPT_NAME']),1);
   echo $title;
 ?></title>
 <link rel="icon" href="<?php
-  echo (empty($icon) || !file_exists($icon) ? 'data:,' : $icon);
+  echo (
+    !empty($icon) && (file_exists($icon) || substr($icon,0,5)==='data:')
+    ? $icon : 'data:,'
+  );
 ?>">
 <?php
   if (!empty($styles)) {

@@ -42,11 +42,7 @@ const $q = (q,f=null) => {
 };
 
 const clear = p => {
-  for (;;) {
-    const x = p.lastChild;
-    if (!x) break;
-    x.remove();
-  }
+  for (let x; x = p.lastChild; ) x.remove();
   return p;
 };
 
