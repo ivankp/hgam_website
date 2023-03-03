@@ -6,9 +6,19 @@ $styles = [ '../styles.css', 'styles.css' ];
 $scripts = [ '../common.js', 'script.js' ];
 
 include '../head.php';
+
+$binning = json_decode(file_get_contents('vars.json'));
+foreach ($binning as $k => $v) {
+  if (
+    !file_exists('data/'.$k.'_data.dat') ||
+    !file_exists('data/'.$k.'_mc.dat')
+  ) {
+    unset($binning->{$k});
+  }
+}
 ?>
 <script>
-const binning = <?php passthru('./vars vars.txt');?>;
+const binning = <?php echo json_encode($binning);?>;
 const mxaods = <?php include 'mxaods.json';?>;
 </script>
 <?php

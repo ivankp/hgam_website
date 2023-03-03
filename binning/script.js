@@ -1,7 +1,7 @@
 const state = { }, form = { };
 let main_table, vars_table;
 let main_table_ncols;
-let var_names;
+let vars_names, default_var;
 
 function numfmt(x) {
   if (x === 0) return '0';
@@ -64,7 +64,7 @@ function state_from_url() {
       } else if (k.match(/x[1-9]/)) {
         if (v==null || v.length==0) continue;
         const edges = v.split('+');
-        if (!var_names.includes(edges[0])) continue;
+        if (!(edges[0] in binning)) continue;
         if (!(edges[0] in xi))
           xi[edges[0]] = [
             parseInt(k.slice(1)),
@@ -74,13 +74,14 @@ function state_from_url() {
     }
   }
 
+  // number variables in url sequentially starting from 1
   xi = Object.entries(xi);
   state.vars = (
     xi.length > 0
     ? xi.map(x => [x[1][0],x[0],x[1][1]])
         .sort()
         .map((x,i) => [x[1],x[2]])
-    : [[var_names[0],[]]]
+    : [[default_var,[]]]
   );
 
   let lumi = parseFloat(state.lumi);
@@ -231,7 +232,7 @@ function form_from_state() {
     const v = state.vars[i];
     const tr = $(vars_table,'tr');
     const select = $(tr,'td','select',{name:'x'+(i+1)});
-    for (const x of var_names) {
+    for (const x of vars_names) {
       const opt = $(select,'option');
       opt.textContent = x;
       if (x === v[0]) opt.selected = true;
@@ -367,7 +368,13 @@ function table_from_resp(resp) {
 }
 
 function main() {
-  var_names = binning.map(x => x[0]);
+  vars_names = Object.keys(binning).sort((a,b) => {
+    a = a.name.toLowerCase();
+    b = b.name.toLowerCase();
+    return a < b ? -1 : (a > b ? 1 : 0);
+  });
+  default_var = 'pT_yy' in binning ? 'pT_yy' : vars_names[0];
+
   // collect named form elements
   $q('form [name]', x => { form[x.name] = x; });
 
