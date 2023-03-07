@@ -1,7 +1,22 @@
-const state = { }, form = { };
+let state = { }, form = { };
 let main_table, vars_table;
 let main_table_ncols;
 let vars_names;
+
+function compare_state(prev) { // return true to push
+  if (!('resp' in prev)) return false;
+  if (!!prev.lumi && state.lumi !== prev.lumi) return true;
+  if (JSON.stringify(state['vars']) !== JSON.stringify(prev['vars']))
+    return true;
+  return false;
+}
+
+function copy_obj(obj) {
+  const r = { };
+  for (const [k,v] of Object.entries(obj))
+    r[k] = v;
+  return r;
+}
 
 function numfmt(x) {
   if (x === 0) return '0';
@@ -140,12 +155,11 @@ function search_from_state(req=false) {
 
   return search;
 }
-function url_from_state() {
-  history.replaceState(
-    state,
-    '',
-    location.origin + location.pathname + search_from_state()
-  );
+function url_from_state(push=false) {
+  const search = search_from_state();
+  const url = location.origin + location.pathname + search;
+  if (push) history.pushState(state,'',url);
+  else history.replaceState(state,'',url);
 }
 
 function submit_on_enter(field) {
@@ -379,6 +393,8 @@ function table_from_resp(resp) {
     resp.lumi.length === 2 ? `(scaled from ${resp.lumi[1]} ifb)` : '';
 
   toggle_unc_cols();
+
+  $id('run_time').textContent = resp.time + ' ms';
 }
 
 function main() {
@@ -386,6 +402,13 @@ function main() {
     a = a.toLowerCase();
     b = b.toLowerCase();
     return a < b ? -1 : (a > b ? 1 : 0);
+  });
+
+  window.addEventListener('popstate', (e) => {
+    state = e.state;
+    console.log(state);
+    form_from_state();
+    if ('resp' in state) table_from_resp(state.resp);
   });
 
   // collect named form elements
@@ -439,16 +462,15 @@ function main() {
   form_element.addEventListener('submit', function(e){
     e.preventDefault();
     try {
+      const prev_state = copy_obj(state);
       state_from_form();
-      url_from_state();
       form_from_state();
 
       const form_elements = this.querySelectorAll('input,select,button');
       for (const x of form_elements) x.disabled = true;
       const loading = $id('loading');
       loading.style.removeProperty('display');
-      const run_time = $id('run_time');
-      run_time.textContent = '';
+      $id('run_time').textContent = '';
 
       const enable = () => {
         for (const x of form_elements) x.disabled = false;
@@ -463,8 +485,9 @@ function main() {
         if ('error' in resp) {
           alert(resp.error);
         } else {
+          state['resp'] = resp;
+          url_from_state(compare_state(prev_state));
           table_from_resp(resp);
-          run_time.textContent = resp.time + ' ms';
         }
         enable();
       })
