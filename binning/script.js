@@ -174,7 +174,6 @@ function submit_on_enter(field) {
 
 function add_var_events(select,edges,datalist,buttons) {
   select.addEventListener('change', function(e){
-    console.log(e);
     clear(datalist);
     let first = true;
     for (const [label,value] of binning[this.value]) {
@@ -291,8 +290,6 @@ function form_from_state() {
 }
 
 function table_from_resp(resp) {
-  console.log(resp);
-
   const rows = main_table.children;
   while (rows.length > 2)
     rows[rows.length-1].remove();
@@ -406,7 +403,6 @@ function main() {
 
   window.addEventListener('popstate', (e) => {
     state = e.state;
-    console.log(state);
     form_from_state();
     if ('resp' in state) table_from_resp(state.resp);
   });
