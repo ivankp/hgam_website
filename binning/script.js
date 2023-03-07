@@ -160,6 +160,7 @@ function submit_on_enter(field) {
 
 function add_var_events(select,edges,datalist,buttons) {
   select.addEventListener('change', function(e){
+    console.log(e);
     clear(datalist);
     let first = true;
     for (const [label,value] of binning[this.value]) {
@@ -270,15 +271,10 @@ function form_from_state() {
       return b;
     });
     add_var_events(select,edges,datalist,buttons);
-    select.dispatchEvent(new CustomEvent('change'));
+    if (!state.vars[i][1].length) // try to set default value
+      select.dispatchEvent(new CustomEvent('change'));
   }
 }
-
-// function state_from_resp(resp) {
-//   state['lumi'] = resp['lumi'];
-//   state['var'] = resp['var'];
-//   state['edges'] = fix_edges(resp['var_bins'].map(String));
-// }
 
 function table_from_resp(resp) {
   console.log(resp);
@@ -309,66 +305,67 @@ function table_from_resp(resp) {
 
   const nn = resp.vars.map(x => x[1].length-1);
   const ii = nn.map(x => 0);
-  row_loop: for (let j=0;;) {
+  row_loop: for (let j=0;;++j) {
     const tr = $(main_table,'tr');
-    for (let i=0; i<nvars; ++i, ++j) {
+    for (let i=0; i<nvars; ++i) {
       $(tr,'td').textContent = '['
         + numfmt2(resp.vars[i][1][ii[i]  ]) + ','
         + numfmt2(resp.vars[i][1][ii[i]+1]) + ')';
-
-      const s = resp.sig[j];
-      $(tr,'td').textContent = s.toFixed(2);
-      $(tr,'td').textContent = s === 0 ? '—' :
-        (100*resp.sig_sys[j]/s).toFixed(2)+'%';
-      $(tr,'td').textContent = s === 0 ? '—' :
-        (100/Math.sqrt(s)).toFixed(2)+'%'; // √n/n = 1/√n
-
-      let b = resp.bkg[j];
-      const prec = resp.lumi.length === 2 ? 2 : 0;
-      $(tr,'td').textContent = b[0].toFixed(prec);
-      $(tr,'td').textContent = b[2].toFixed(prec);
-      b = b[1];
-      $(tr,'td').textContent = b.toFixed(2);
-
-      $(tr,'td').textContent = 'TODO';
-      $(tr,'td').textContent = b === 0 ? '—' :
-        (100/Math.sqrt(b)).toFixed(2)+'%'; // √n/n = 1/√n
-
-      // significance
-      let signif = s/Math.sqrt(s+b);
-      let finite = Number.isFinite(signif);
-      $(tr,'td',{style:{
-        'font-weight': 'bold',
-        color: !finite ? null
-             : signif < 1   ? '#CC0000'
-             : signif < 2   ? '#FF6600'
-             : signif < 2.3 ? '#000099'
-             : '#006600'
-      }}).textContent = signif.toFixed(2);
-
-      signif = Math.sqrt(2*((s+b)*Math.log(1+s/b)-s));
-      finite = Number.isFinite(signif);
-      $(tr,'td',{style:{
-        'font-weight': 'bold',
-        color: !finite ? null
-             : signif < 1   ? '#CC0000'
-             : signif < 2   ? '#FF6600'
-             : signif < 2.3 ? '#000099'
-             : '#006600'
-      }}).textContent = finite ? signif.toFixed(2) : '—';
-
-      $(tr,'td').textContent = (100*s/(s+b)).toFixed(2)+'%';
-
-      const purity = /* */NaN;
-      finite = Number.isFinite(purity);
-      $(tr,'td',{style:{
-        color: !finite ? null
-             : purity < 0.4  ? '#CC0000'
-             : purity < 0.5  ? '#FF6600'
-             : purity < 0.75 ? '#000099'
-             : '#006600'
-      }}).textContent = finite ? (100*purity).toFixed(2)+'%' : '—';
     }
+
+    const s = resp.sig[j];
+    $(tr,'td').textContent = s.toFixed(2);
+    $(tr,'td').textContent = s === 0 ? '—' :
+      (100*resp.sig_sys[j]/s).toFixed(2)+'%';
+    $(tr,'td').textContent = s === 0 ? '—' :
+      (100/Math.sqrt(s)).toFixed(2)+'%'; // √n/n = 1/√n
+
+    let b = resp.bkg[j];
+    const prec = resp.lumi.length === 2 ? 2 : 0;
+    $(tr,'td').textContent = b[0].toFixed(prec);
+    $(tr,'td').textContent = b[2].toFixed(prec);
+    b = b[1];
+    $(tr,'td').textContent = b.toFixed(2);
+
+    $(tr,'td').textContent = 'TODO';
+    $(tr,'td').textContent = b === 0 ? '—' :
+      (100/Math.sqrt(b)).toFixed(2)+'%'; // √n/n = 1/√n
+
+    // significance
+    let signif = s/Math.sqrt(s+b);
+    let finite = Number.isFinite(signif);
+    $(tr,'td',{style:{
+      'font-weight': 'bold',
+      color: !finite ? null
+           : signif < 1   ? '#CC0000'
+           : signif < 2   ? '#FF6600'
+           : signif < 2.3 ? '#000099'
+           : '#006600'
+    }}).textContent = signif.toFixed(2);
+
+    signif = Math.sqrt(2*((s+b)*Math.log(1+s/b)-s));
+    finite = Number.isFinite(signif);
+    $(tr,'td',{style:{
+      'font-weight': 'bold',
+      color: !finite ? null
+           : signif < 1   ? '#CC0000'
+           : signif < 2   ? '#FF6600'
+           : signif < 2.3 ? '#000099'
+           : '#006600'
+    }}).textContent = finite ? signif.toFixed(2) : '—';
+
+    $(tr,'td').textContent = (100*s/(s+b)).toFixed(2)+'%';
+
+    const purity = /* */NaN;
+    finite = Number.isFinite(purity);
+    $(tr,'td',{style:{
+      color: !finite ? null
+           : purity < 0.4  ? '#CC0000'
+           : purity < 0.5  ? '#FF6600'
+           : purity < 0.75 ? '#000099'
+           : '#006600'
+    }}).textContent = finite ? (100*purity).toFixed(2)+'%' : '—';
+
     for (let i=0;;) {
       if (++ii[i] < nn[i]) break;
       ii[i] = 0;
@@ -403,6 +400,7 @@ function main() {
   state_from_url();
   url_from_state();
   form_from_state();
+  // TODO: avoid doing this 2 times on load
 
   // create table columns
   for (row of [
@@ -465,11 +463,7 @@ function main() {
         if ('error' in resp) {
           alert(resp.error);
         } else {
-          // state_from_resp(resp);
-          // url_from_state();
-          // form_from_state();
           table_from_resp(resp);
-
           run_time.textContent = resp.time + ' ms';
         }
         enable();
@@ -513,7 +507,11 @@ function main() {
     }
   })});
 
-  form_element.dispatchEvent(
-    new CustomEvent('submit', {cancelable: true})
-  );
+  if (vars_names.length) {
+    form_element.dispatchEvent(
+      new CustomEvent('submit', {cancelable: true})
+    );
+  } else {
+    alert('No variables available');
+  }
 }
