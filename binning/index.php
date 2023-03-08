@@ -39,7 +39,7 @@ include '../nav.php';
     <span id="data_lumi"></span>
   </div><div>
     <table id="vars_table_wrap"><tr>
-      <td><table id="vars_table"></table></td>
+      <td><table id="form_table"></table></td>
       <td><input type="submit" value="Rebin"></td>
       <td><img id="loading" src="../img/loading.gif" alt="loading" style="display:none;"></td>
       <td><span id="run_time"></span></td>

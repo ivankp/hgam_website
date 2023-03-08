@@ -1,22 +1,7 @@
 let state = { }, form = { };
-let main_table, vars_table;
+let main_table, form_table;
 let main_table_ncols;
 let vars_names;
-
-function compare_state(prev) { // return true to push
-  if (!('resp' in prev)) return false;
-  if (!!prev.lumi && state.lumi !== prev.lumi) return true;
-  if (JSON.stringify(state['vars']) !== JSON.stringify(prev['vars']))
-    return true;
-  return false;
-}
-
-function copy_obj(obj) {
-  const r = { };
-  for (const [k,v] of Object.entries(obj))
-    r[k] = v;
-  return r;
-}
 
 function numfmt(x) {
   if (x === 0) return '0';
@@ -186,7 +171,7 @@ function add_var_events(select,edges,datalist,buttons) {
   });
   buttons[0].addEventListener('click', function(e){
     e.preventDefault();
-    if (vars_table.childElementCount <= 1) return;
+    if (form_table.childElementCount <= 1) return;
     const tr = this.closest('tr');
     const next = tr.nextElementSibling;
     tr.remove();
@@ -194,7 +179,7 @@ function add_var_events(select,edges,datalist,buttons) {
   });
   buttons[1].addEventListener('click', function(e){
     e.preventDefault();
-    if (vars_table.childElementCount >= 9) return;
+    if (form_table.childElementCount >= 9) return;
     const tr = this.closest('tr');
     let next = tr.cloneNode(true);
     next.firstElementChild.firstElementChild.selectedIndex =
@@ -257,10 +242,10 @@ function form_from_state() {
   for (const x of ['lumi'])
     form[x].value = state[x];
 
-  clear(vars_table);
+  clear(form_table);
   for (let i=0; i<state.vars.length; ++i) {
     const v = state.vars[i];
-    const tr = $(vars_table,'tr');
+    const tr = $(form_table,'tr');
     const select = $(tr,'td','select',{name:'x'+(i+1)});
     for (const x of vars_names) {
       const opt = $(select,'option');
@@ -289,7 +274,7 @@ function form_from_state() {
   }
 }
 
-function table_from_resp(resp) {
+function table_from_resp() {
   const rows = main_table.children;
   while (rows.length > 2)
     rows[rows.length-1].remove();
@@ -300,6 +285,7 @@ function table_from_resp(resp) {
       row[0].remove();
   }
 
+  const resp = state.resp;
   if (!('vars' in resp) || resp['vars'].length===0) {
     console.log(resp);
     throw Error('no variables in response');
@@ -404,7 +390,7 @@ function main() {
   window.addEventListener('popstate', (e) => {
     state = e.state;
     form_from_state();
-    if ('resp' in state) table_from_resp(state.resp);
+    if ('resp' in state) table_from_resp();
   });
 
   // collect named form elements
@@ -412,7 +398,7 @@ function main() {
 
   submit_on_enter(form['lumi']);
 
-  vars_table = $id('vars_table');
+  form_table = $id('form_table');
   main_table = $($id('main_table'),'table');
 
   // get state from url
@@ -458,7 +444,7 @@ function main() {
   form_element.addEventListener('submit', function(e){
     e.preventDefault();
     try {
-      const prev_state = copy_obj(state);
+      const prev_state = Object.assign({},state);
       state_from_form();
       form_from_state();
 
@@ -482,8 +468,15 @@ function main() {
           alert(resp.error);
         } else {
           state['resp'] = resp;
-          url_from_state(compare_state(prev_state));
-          table_from_resp(resp);
+          url_from_state( // push if true, replace if false
+            ( ('resp' in prev_state) &&
+              (!!prev_state.lumi && state.lumi !== prev_state.lumi)
+            ) || (
+              JSON.stringify(     state['vars']) !==
+              JSON.stringify(prev_state['vars'])
+            )
+          );
+          table_from_resp();
         }
         enable();
       })
