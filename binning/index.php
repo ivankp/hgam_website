@@ -2,8 +2,14 @@
 
 $title = 'H&rarr;&gamma;&gamma; binning tool';
 $icon = '../favicon.ico';
-$styles = [ '../styles.css', 'styles.css' ];
-$scripts = [ '../common.js', 'script.js' ];
+$styles = [
+  '../styles.css', 'styles.css'
+];
+$scripts = [
+  '../js/d3.v6.min.js',
+  '../js/d3-color.v1.min.js',
+  '../common.js', 'script.js'
+];
 
 include '../head.php';
 
@@ -81,9 +87,7 @@ See the
 </div>
 <div class="col">
   <div id="mxaods"><p>MxAOD files <span class="show">[show]</span></p></div>
-  <div id="reco_migr"><p>Reco migration <span class="show">[hide]</span></p>
-    <div id="reco_migr_plot"></div>
-  </div>
+  <div id="mig"><p>Reco migration <span class="show">[hide]</span></p></div>
   <div id="fit_plot"></div>
 </div>
 </div>

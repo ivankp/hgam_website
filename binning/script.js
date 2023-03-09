@@ -3,6 +3,20 @@ let main_table, form_table;
 let main_table_ncols;
 let vars_names;
 
+const prod_loop = (f, ...aa) => {
+  const na = aa.length;
+  const nn = aa.map(x => x[1].length-1);
+  const ii = nn.map(x => 0);
+  big_loop: for (let j=0;;++j) {
+    f(ii,j);
+    for (let i=0;;) {
+      if (++ii[i] < nn[i]) break;
+      ii[i] = 0;
+      if (++i === na) break big_loop;
+    }
+  }
+};
+
 function numfmt(x) {
   if (x === 0) return '0';
   const a = Math.abs(x);
@@ -269,7 +283,8 @@ function form_from_state() {
       return b;
     });
     add_var_events(select,edges,datalist,buttons);
-    if (!state.vars[i][1].length) // try to set default value
+    if (state.vars[i][1].length === 0) // try to set default value
+      // TODO: the chcek prevents options from populating the datalist on load
       select.dispatchEvent(new CustomEvent('change'));
   }
 }
@@ -285,40 +300,41 @@ function table_from_resp() {
       row[0].remove();
   }
 
-  const resp = state.resp;
-  if (!('vars' in resp) || resp['vars'].length===0) {
-    console.log(resp);
+  console.log(state.resp);
+  const { vars, migration: mig, lumi, bkg, sig, sig_sys } = state.resp;
+
+  if (vars === undefined || vars.length === 0) {
+    console.log(state.resp);
     throw Error('no variables in response');
   }
-  const nvars = resp.vars.length;
+  const nvars = vars.length;
+  const nbins = sig.length;
 
   for (let i=nvars; i--; ) {
-    const v = resp.vars[i];
+    const v = vars[i];
     rows[0].prepend($(null,'td'));
     let td = $(null,'td',{style:{'font-size':'small'}});
     td.textContent = v[0];
     rows[1].prepend(td);
   }
 
-  const nn = resp.vars.map(x => x[1].length-1);
-  const ii = nn.map(x => 0);
-  row_loop: for (let j=0;;++j) {
+  prod_loop((ii,j) => {
     const tr = $(main_table,'tr');
     for (let i=0; i<nvars; ++i) {
       $(tr,'td').textContent = '['
-        + numfmt2(resp.vars[i][1][ii[i]  ]) + ','
-        + numfmt2(resp.vars[i][1][ii[i]+1]) + ')';
+        + numfmt2(vars[i][1][ii[i]  ]) + ','
+        + numfmt2(vars[i][1][ii[i]+1]) + ')';
     }
 
-    const s = resp.sig[j];
+    const s = sig[j];
     $(tr,'td').textContent = s.toFixed(2);
     $(tr,'td').textContent = s === 0 ? '—' :
-      (100*resp.sig_sys[j]/s).toFixed(2)+'%';
+      (100*sig_sys[j]/s).toFixed(2)+'%';
     $(tr,'td').textContent = s === 0 ? '—' :
       (100/Math.sqrt(s)).toFixed(2)+'%'; // √n/n = 1/√n
 
-    let b = resp.bkg[j];
-    const prec = resp.lumi.length === 2 ? 2 : 0;
+    let b = bkg[j];
+    const prec = lumi.length === 2 ? 2 : 0;
     $(tr,'td').textContent = b[0].toFixed(prec);
     $(tr,'td').textContent = b[2].toFixed(prec);
     b = b[1];
@@ -353,7 +369,7 @@ function table_from_resp() {
 
     $(tr,'td').textContent = (100*s/(s+b)).toFixed(2)+'%';
 
-    const purity = /* */NaN;
+    const purity = mig[j*nbins+j] / s;
     finite = Number.isFinite(purity);
     $(tr,'td',{style:{
       color: !finite ? null
@@ -362,22 +378,78 @@ function table_from_resp() {
            : purity < 0.75 ? '#000099'
            : '#006600'
     }}).textContent = finite ? (100*purity).toFixed(2)+'%' : '—';
+  },...vars);
 
-    for (let i=0;;) {
-      if (++ii[i] < nn[i]) break;
-      ii[i] = 0;
-      if (++i === nvars) break row_loop;
-    }
-  }
-
-  form.lumi.value = resp.lumi[0];
+  form.lumi.value = lumi[0];
 
   $id('data_lumi').textContent =
-    resp.lumi.length === 2 ? `(scaled from ${resp.lumi[1]} ifb)` : '';
+    lumi.length < 2 ? '' : `(scaled from ${lumi[1]} ifb)`;
 
   toggle_unc_cols();
 
-  $id('run_time').textContent = resp.time + ' ms';
+  $id('run_time').textContent = state.resp.time + ' ms';
+
+  draw_migration(state.resp);
+}
+function draw_migration({migration:mig,vars,sig}) {
+  const nbins = sig.length;
+  const Len = 2**4 * 3**2 * 5, len = Len/nbins;
+  const div = $id('mig');
+  { const last = div.lastElementChild;
+    if (last instanceof SVGElement) last.remove();
+  }
+  const svg = $(div,'svg');
+
+  const axis_w = 5;
+
+  let text = $(svg,'g','text',{
+    style: { fill: '#000', 'font-size': '36px' }
+  });
+  text.textContent = 'Truth';
+  let g = text.parentElement;
+  let bbox = g.getBBox();
+  const y_margin = bbox.height + axis_w + 2;
+  $(g,{
+    transform: `translate(${Len-bbox.width-2},${Len+bbox.height+2})`
+  });
+
+  text = $(svg,'g','text',{
+    style: { fill: '#000', 'font-size': '36px' },
+    transform: 'rotate(-90)'
+  });
+  text.textContent = 'Reco';
+  g = text.parentElement;
+  bbox = g.getBBox();
+  const x_margin = bbox.width + axis_w + 2;
+  $(g,{
+    transform: `translate(${-axis_w-6},${bbox.height+2})`
+  });
+
+  $(svg,{
+    viewBox:`${-x_margin} 0 ${Len+x_margin} ${Len+y_margin}`,
+    style: { width: '300px' }
+  });
+
+  let k = 0;
+  prod_loop((ii,i) => { // reco
+    prod_loop((jj,j) => { // truth
+      const m = mig[k]/sig[i];
+
+      if (m > 0) $(svg,'rect',{
+        x: len*j, y: Len-len*(i+1), width: len, height: len,
+        fill: d3.interpolateGreens(1/-Math.log(mig[k]/sig[i]))
+      });
+
+      ++k;
+    },...vars);
+  },...vars);
+
+  $(svg,'path',{ // axes
+    d: `M ${-axis_w/2} 0 V ${Len+axis_w/2} H ${Len+axis_w/2}`,
+    'stroke-width': axis_w,
+    stroke: '#000',
+    fill: 'none'
+  });
 }
 
 function main() {
@@ -405,7 +477,6 @@ function main() {
   state_from_url();
   url_from_state();
   form_from_state();
-  // TODO: avoid doing this 2 times on load
 
   // create table columns
   for (row of [
@@ -426,6 +497,49 @@ function main() {
       tds[i].style['font-size'] = 'small';
   }
   toggle_unc_cols();
+
+  // MxAODs
+  const mxaods_div = $id('mxaods');
+  mxaods_div.querySelector('.show').addEventListener('click', e => {
+    let ul = mxaods_div.lastElementChild;
+    if (ul.tagName !== 'UL') {
+      ul = (function level(li,xs) {
+        const ul = $(li,'ul');
+        for (const x of xs) {
+          const li = $(ul,'li');
+          if (Array.isArray(x)) {
+            $(li,'span',['dir']).textContent = x[0];
+            level(li,x[1]);
+          } else {
+            li.textContent = x;
+          }
+        }
+        return ul;
+      }(mxaods_div,mxaods));
+      ul.style.display = 'none';
+    }
+    if (ul.style.display) { // hidden, need to show
+      ul.style.display = null;
+      e.target.textContent = '[hide]';
+    } else { // shown, need to hide
+      ul.style.display = 'none';
+      e.target.textContent = '[show]';
+    }
+  });
+
+  // migration
+  const mig_div = $id('mig');
+  mig_div.querySelector('.show').addEventListener('click', e => {
+    const mig = mig_div.lastElementChild;
+    if (!(mig instanceof SVGElement)) return;
+    if (mig.style.display) { // hidden, need to show
+      mig.style.display = null;
+      e.target.textContent = '[hide]';
+    } else { // shown, need to hide
+      mig.style.display = 'none';
+      e.target.textContent = '[show]';
+    }
+  });
 
   // events
   for (const [name,f] of [
@@ -490,35 +604,7 @@ function main() {
     }
   });
 
-  // MxAODs
-  $q('#mxaods .show', q => { q.addEventListener('click', e => {
-    const p = q.parentElement;
-    let ul = p.lastElementChild;
-    if (ul.tagName !== 'UL') {
-      ul = (function level(li,xs) {
-        const ul = $(li,'ul');
-        for (const x of xs) {
-          const li = $(ul,'li');
-          if (Array.isArray(x)) {
-            $(li,'span',['dir']).textContent = x[0];
-            level(li,x[1]);
-          } else {
-            li.textContent = x;
-          }
-        }
-        return ul;
-      }(p,mxaods));
-      ul.style.display = 'none';
-    }
-    if (ul.style.display) { // hidden, need to show
-      ul.style.display = null;
-      e.target.textContent = '[hide]';
-    } else { // shown, need to hide
-      ul.style.display = 'none';
-      e.target.textContent = '[show]';
-    }
-  })});
-
+  // Submit form when page is loaded
   if (vars_names.length) {
     form_element.dispatchEvent(
       new CustomEvent('submit', {cancelable: true})

@@ -1,7 +1,8 @@
 const $ = (p,...args) => {
   if (p===null) {
-    if (args[0].constructor !== String) throw new Error('expected tag name');
-    p = document.createElement(args.shift());
+    const x = args.shift();
+    if (x.constructor !== String) throw new Error('expected tag name');
+    p = document.createElement(x);
   }
   for (let x of args) {
     if (x.constructor === String) {
