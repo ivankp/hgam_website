@@ -399,9 +399,11 @@ function draw_migration({migration:mig,vars,sig}) {
   const nbins = sig.length;
   const Len = 2**4 * 3**2 * 5, len = Len/nbins;
   const div = $id('mig');
-  { const last = div.lastElementChild;
-    if (last instanceof SVGElement) last.remove();
-  }
+
+  const last = div.lastElementChild;
+  const hide = last.style.display === 'none';
+  if (last instanceof SVGElement) last.remove();
+
   const svg = $(div,'svg');
 
   const axis_w = 4;
@@ -450,6 +452,8 @@ function draw_migration({migration:mig,vars,sig}) {
     stroke: '#000',
     fill: 'none'
   });
+
+  if (hide) svg.style.display = 'none';
 }
 
 function move_pane() {

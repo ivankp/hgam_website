@@ -44,7 +44,7 @@ include '../nav.php';
     <label>Luminosity:<input type="text" name="lumi" size="6">ifb</label>
     <span id="data_lumi"></span>
   </div><div>
-    <table id="vars_table_wrap"><tr>
+    <table id="form_table_wrap"><tr>
       <td><table id="form_table"></table></td>
       <td><input type="submit" value="Rebin"></td>
       <td><img id="loading" src="../img/loading.gif" alt="loading" style="display:none;"></td>

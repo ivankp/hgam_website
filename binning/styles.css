@@ -98,7 +98,6 @@ span.show:hover{ cursor: pointer; }
 #main_table td:nth-child(1) { text-align: left; }
 #main_table td:nth-child(n+2) { text-align: right; }
 
-#vars_table, #vars_table_wrap {
-  border-collapse: collapse;
-}
-#vars_table_wrap td { vertical-align: baseline; }
+#form_table, #form_table_wrap { border-collapse: collapse; }
+#form_table_wrap td { vertical-align: baseline; }
+#form_table button { font-family: monospace; }
