@@ -32,12 +32,13 @@ include '../nav.php';
 ?>
 
 <div id="main">
-<div class="row">
-<div class="col" style="min-width:475px;">
 
 <div class="top">
 <p>H&rarr;&gamma;&gamma; binning estimator</p>
 </div>
+
+<div class="flex">
+<div>
 
 <form>
   <div>
@@ -59,6 +60,16 @@ include '../nav.php';
 </form>
 
 <div id="main_table"></div>
+
+</div>
+
+<div>
+  <div id="mxaods"><p>MxAOD files <span class="show">[show]</span></p></div>
+  <div id="mig"><p>Reco migration <span class="show">[hide]</span></p></div>
+  <div id="fit_plot"></div>
+</div>
+
+<div class="break"></div>
 
 <div class="note">
 <p>sig - number of signal events, taken from Monte Carlo.</p>
@@ -82,15 +93,8 @@ See the
 >"Discovery significance ..."</a> note by Glen Cowan.
 </div>
 
-<table id="lumi_info"></table>
+</div>
 
-</div>
-<div class="col">
-  <div id="mxaods"><p>MxAOD files <span class="show">[show]</span></p></div>
-  <div id="mig"><p>Reco migration <span class="show">[hide]</span></p></div>
-  <div id="fit_plot"></div>
-</div>
-</div>
 </div>
 
 <?php

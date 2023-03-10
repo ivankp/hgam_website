@@ -400,30 +400,26 @@ function draw_migration({migration:mig,vars,sig}) {
   }
   const svg = $(div,'svg');
 
-  const axis_w = 5;
+  const axis_w = 4;
 
-  let text = $(svg,'g','text',{
-    style: { fill: '#000', 'font-size': '36px' }
-  });
+  const style = { fill: '#000', 'font-size': '36px' };
+  let text = $(svg,'g','text',{ style });
   text.textContent = 'Truth';
   let g = text.parentElement;
   let bbox = g.getBBox();
-  const y_margin = bbox.height + axis_w + 2;
   $(g,{
     transform: `translate(${Len-bbox.width-2},${Len+bbox.height+2})`
   });
+  const y_margin = bbox.height + axis_w + 2;
 
-  text = $(svg,'g','text',{
-    style: { fill: '#000', 'font-size': '36px' },
-    transform: 'rotate(-90)'
-  });
+  text = $(svg,'g','text',{ style, transform: 'rotate(-90)' });
   text.textContent = 'Reco';
   g = text.parentElement;
   bbox = g.getBBox();
-  const x_margin = bbox.width + axis_w + 2;
   $(g,{
     transform: `translate(${-axis_w-6},${bbox.height+2})`
   });
+  const x_margin = bbox.width + axis_w + 2;
 
   $(svg,{
     viewBox:`${-x_margin} 0 ${Len+x_margin} ${Len+y_margin}`,
