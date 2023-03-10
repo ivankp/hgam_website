@@ -33,12 +33,11 @@ include '../nav.php';
 
 <div id="main">
 
-<div class="top">
+<div id="top">
 <p>H&rarr;&gamma;&gamma; binning estimator</p>
 </div>
-
-<div class="flex">
-<div>
+<div id="mid">
+<div id="left">
 
 <form>
   <div>
@@ -61,17 +60,9 @@ include '../nav.php';
 
 <div id="main_table"></div>
 
-</div>
+<div id="mid-left"></div>
 
-<div>
-  <div id="mxaods"><p>MxAOD files <span class="show">[show]</span></p></div>
-  <div id="mig"><p>Reco migration <span class="show">[hide]</span></p></div>
-  <div id="fit_plot"></div>
-</div>
-
-<div class="break"></div>
-
-<div class="note">
+<div id="note">
 <p>sig - number of signal events, taken from Monte Carlo.</p>
 <p>bkg - number of background events in the signal region, estimated from data
 sidebands.</p>
@@ -94,7 +85,16 @@ See the
 </div>
 
 </div>
+<div id="right">
 
+<div id="pane">
+  <div id="mxaods"><p>MxAOD files <span class="show">[show]</span></p></div>
+  <div id="mig"><p>Reco migration <span class="show">[hide]</span></p></div>
+  <div id="fit_plot"></div>
+</div>
+
+</div>
+</div>
 </div>
 
 <?php

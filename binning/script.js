@@ -61,6 +61,8 @@ function toggle_unc_cols() {
       for (const i of [1,2,6,7])
         tds[i+nvars].style['display'] = display;
   }
+  $id('note').style.maxWidth = main_table.getBoundingClientRect().width+'px';
+  move_pane();
 }
 
 function state_from_url() {
@@ -289,7 +291,7 @@ function form_from_state() {
   }
 }
 
-function table_from_resp() {
+function process_resp() {
   const rows = main_table.children;
   while (rows.length > 2)
     rows[rows.length-1].remove();
@@ -390,6 +392,8 @@ function table_from_resp() {
   $id('run_time').textContent = state.resp.time + ' ms';
 
   draw_migration(state.resp);
+
+  move_pane();
 }
 function draw_migration({migration:mig,vars,sig}) {
   const nbins = sig.length;
@@ -448,6 +452,22 @@ function draw_migration({migration:mig,vars,sig}) {
   });
 }
 
+function move_pane() {
+  const left = $id('left');
+  const pane = $id('pane');
+
+  const mid_width = $id('mid').getBoundingClientRect().width;
+  const pane_width = pane.getBoundingClientRect().width;
+  const left_width = left.getBoundingClientRect().width;
+
+  const to = $id(
+    left_width + pane_width <= mid_width
+    ? 'right' : 'mid-left'
+  );
+  const from = pane.parentElement;
+  if (to !== from) to.appendChild(pane);
+}
+
 function main() {
   vars_names = Object.keys(binning).sort((a,b) => {
     a = a.toLowerCase();
@@ -458,7 +478,7 @@ function main() {
   window.addEventListener('popstate', (e) => {
     state = e.state;
     form_from_state();
-    if ('resp' in state) table_from_resp();
+    if ('resp' in state) process_resp();
   });
 
   // collect named form elements
@@ -521,6 +541,7 @@ function main() {
       ul.style.display = 'none';
       e.target.textContent = '[show]';
     }
+    move_pane();
   });
 
   // migration
@@ -535,6 +556,7 @@ function main() {
       mig.style.display = 'none';
       e.target.textContent = '[show]';
     }
+    move_pane();
   });
 
   // events
@@ -586,7 +608,7 @@ function main() {
               JSON.stringify(prev_state['vars'])
             )
           );
-          table_from_resp();
+          process_resp();
         }
         enable();
       })

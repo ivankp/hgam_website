@@ -2,26 +2,20 @@
   margin: 0 4px;
 }
 
-.flex {
-  display: flex;
-  flex-flow: row wrap;
-  align-items: flex-start;
-  gap: 5px 20px;
-}
-.flex .break {
-  flex-basis: 100%;
-  height: 0;
-}
+#left, #right { float: left; }
+#pane { display: inline-block; }
+#right > #pane { padding-left: 20px; }
+#mid-left > #pane { padding: 10px 0; }
 
-.note { font-size: small; }
-.note p {
+#note { font-size: small; }
+#note p {
   margin-top: 5px;
   margin-bottom: 5px;
 }
 
-.top { font-size: 11pt; }
-.top p { margin: 0 0 10px 0; }
-.top img { margin: 0 4px 0 30px; }
+#top { font-size: 11pt; }
+#top p { margin: 0 0 10px 0; }
+#top img { margin: 0 4px 0 30px; }
 
 span.bar {
   text-decoration: overline;
@@ -48,17 +42,22 @@ input[name="edges"] {
   color: #777;
   white-space: nowrap;
 }
+#run_time {
+  margin-left: 4px;
+  font-size: small;
+  color: #999;
+  white-space: nowrap;
+}
+#loading {
+  vertical-align: middle;
+  margin-left: 6px;
+}
 
 form > div {
   margin: 2px 0;
 }
 .checks {
   font-size: small;
-}
-
-#loading {
-  vertical-align: middle;
-  margin-left: 6px;
 }
 
 #mxaods > p { padding: 0; margin: 0; }
@@ -80,13 +79,6 @@ span.show {
   user-select: none;
 }
 span.show:hover{ cursor: pointer; }
-
-#run_time {
-  margin-left: 4px;
-  font-size: small;
-  color: #999;
-  white-space: nowrap;
-}
 
 #main_table > table {
   margin: 5px 0;
