@@ -7,6 +7,22 @@ const dummy_a = document.createElement('a');
 
 const round = x => x.toFixed(4).replace(/\.?0*$/,'');
 
+const split_index = (k,xs,f) => {
+  const nn = xs.length;
+  if (nn > 1) {
+    const ii = [ f(xs[0]) ];
+    for (let i=1; i<nn-1; ++i)
+      ii.push(ii[i-1]*f(xs[i]));
+    ii.push(k);
+    for (let i=nn; --i; ) {
+      k = ii[i];
+      ii[i] = k / ii[i-1] >> 0;
+      ii[i-1] = k % ii[i-1];
+    }
+    return ii;
+  } else return [ k ];
+};
+
 const prod_loop = (f, ...aa) => {
   const na = aa.length;
   const nn = aa.map(x => x[1].length-1);
@@ -408,12 +424,14 @@ function process_resp() {
 function draw_migration({migration:mig,vars,sig}) {
   const nbins = sig.length;
   const Len = 2**4 * 3**2 * 5, len = Len/nbins;
-  const div = $id('mig');
+  let div = $id('mig');
 
   const last = div.lastElementChild;
-  const hide = last.style.display === 'none';
-  if (last instanceof SVGElement) last.remove();
+  const empty = div.childElementCount < 2;
+  const hide = !empty && last.style.display;
+  if (!empty) last.remove();
 
+  div = $(div,'div');
   const svg = $(div,'svg');
 
   const axis_w = 4;
@@ -463,31 +481,66 @@ function draw_migration({migration:mig,vars,sig}) {
     fill: 'none'
   });
 
+  // hover
+  const info = $(div,'div',{class:'info'});
   const over = $(svg,'rect',{
     x: 0, y: 0, width: len-4, height: len-4,
     fill: 'none', stroke: '#C00', 'stroke-width': 4
   });
   over.classList.add('hide');
   const pt = svg.createSVGPoint();
-  let i1, j1;
+  let r1, t1;
   $(svg,{ events: {
     mousemove: e => {
       pt.x = e.clientX;
       pt.y = e.clientY;
       const {x,y} = pt.matrixTransform(svg.getScreenCTM().inverse());
-      const j = Math.floor(x/len), i = Math.floor((Len-y)/len);
-      if (j < 0 || i < 0) {
+      const t = Math.floor(x/len), r = Math.floor((Len-y)/len);
+      if (t < 0 || r < 0 || t >= nbins || r >= nbins) {
         over.classList.add('hide');
-        j1 = undefined;
-        i1 = undefined;
-      } else if (j !== j1 || i !== i1) {
-        j1 = j;
-        i1 = i;
-        $(over,{ x: len*j+2, y: Len-len*(i+1)+2 }).classList.remove('hide');
+        t1 = undefined;
+        r1 = undefined;
+      } else if (t !== t1 || r !== r1) {
+        t1 = t;
+        r1 = r;
+        $(over,{ x: len*t+2, y: Len-len*(r+1)+2 }).classList.remove('hide');
+        // info.classList.remove('hide');
+
+        const nvars = vars.length;
+        const tt = split_index(t,vars,x => x[1].length-1);
+        const rr = split_index(r,vars,x => x[1].length-1);
+
+        clear(info);
+        const table = $(info,'table');
+        let tr = $(table,'tr');
+        $(tr,'td');
+        // $(tr,'td');
+        for (let i=0; i<nvars; ++i) {
+          $(tr,'td').textContent = vars[i][0];
+        }
+        tr = $(table,'tr');
+        $(tr,'td').textContent = 'Truth';
+        // $(tr,'td').textContent = '--';
+        for (let i=0; i<nvars; ++i) {
+          $(tr,'td').textContent = '['
+            + numfmt2(vars[i][1][tt[i]  ]) + ','
+            + numfmt2(vars[i][1][tt[i]+1]) + ')';
+        }
+        tr = $(table,'tr');
+        $(tr,'td').textContent = 'Reco';
+        // $(tr,'td').textContent = '--';
+        for (let i=0; i<nvars; ++i) {
+          $(tr,'td').textContent = '['
+            + numfmt2(vars[i][1][rr[i]  ]) + ','
+            + numfmt2(vars[i][1][rr[i]+1]) + ')';
+        }
+
+        $(info,'p').textContent = 'Monte Carlo: ' + mig[r*nbins+t];
       }
     },
     mouseleave: e => {
       over.classList.add('hide');
+      // info.classList.add('hide');
     },
   }});
 
@@ -670,13 +723,14 @@ function main() {
   // migration
   const mig_div = $id('mig');
   mig_div.querySelector('.show').addEventListener('click', e => {
-    const mig = mig_div.lastElementChild;
-    if (!(mig instanceof SVGElement)) return;
-    if (mig.style.display) { // hidden, need to show
-      mig.style.display = null;
+    const empty = mig_div.childElementCount < 2;
+    if (empty) return;
+    const style = mig_div.lastElementChild.style;
+    if (style.display) { // hidden, need to show
+      style.display = null;
       e.target.textContent = '[hide]';
     } else { // shown, need to hide
-      mig.style.display = 'none';
+      style.display = 'none';
       e.target.textContent = '[show]';
     }
     move_pane();

@@ -127,3 +127,11 @@ span.show {
 .context > *:hover {
   background: #E8E8E9;
 }
+
+#mig .info {
+  font-size: small;
+  font-family: monospace;
+}
+#mig .info > p {
+  margin: 2px 3px;
+}
