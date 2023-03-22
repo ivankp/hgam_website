@@ -133,8 +133,7 @@ function state_from_url() {
 
 function state_from_form() {
   const unique_vars = { };
-  const form_vars = [ ];
-  $q('form [name^="x"]', x => { form_vars.push(x); });
+  const form_vars = $$('form [name^="x"]');
   form_vars.sort((a,b) => {
     a = a.name;
     b = b.name;
@@ -495,14 +494,14 @@ function draw_migration({migration:mig,vars,sig}) {
       const {x,y} = pt.matrixTransform(svg.getScreenCTM().inverse());
       const t = Math.floor(x/len), r = Math.floor((Len-y)/len);
       if (t < 0 || r < 0 || t >= nbins || r >= nbins) {
-        [over,info].forEach(x => $(x,['hide']));
+        $([over,info],['hide']);
         t1 = undefined;
         r1 = undefined;
       } else if (t !== t1 || r !== r1) {
         t1 = t;
         r1 = r;
         $(over,{ x: len*t+2, y: Len-len*(r+1)+2 });
-        [over,info].forEach(x => $(x,['-hide']));
+        $([over,info],['-hide']);
 
         const nvars = vars.length;
         const tt = split_index(t,vars,x => x[1].length-1);
@@ -533,7 +532,7 @@ function draw_migration({migration:mig,vars,sig}) {
         $(info,'p').textContent = `${mig[r*nbins+t]} MC events`;
       }
     },
-    mouseleave: e => { [over,info].forEach(x => $(x,['hide'])); }
+    mouseleave: e => { $([over,info],['hide']); }
   }});
 
   if (hide) svg.style.display = 'none';
@@ -591,7 +590,7 @@ function move_pane() {
 
 function save_svg(svg) {
   svg = svg.cloneNode(true);
-  for (const x of svg.querySelectorAll('.hide')) x.remove();
+  $$(svg,'.hide',x => x.remove());
   dummy_a.href = URL.createObjectURL(new Blob(
     [ '<?xml version="1.0" encoding="UTF-8"?>\n',
       svg.outerHTML
@@ -621,7 +620,7 @@ function save_svg(svg) {
 
 function main() {
   const hide_contexts = () => {
-    $q('body > .context', x => { x.style.display = 'none'; });
+    $$('.context', x => { x.style.display = 'none'; });
   };
   window.addEventListener('keydown', e => {
     switch (e.which || e.keyCode) {
@@ -645,7 +644,8 @@ function main() {
   });
 
   // collect named form elements
-  $q('form [name]', x => { fields[x.name] = x; });
+  const form = $('form');
+  $$(form,'[name]', x => { fields[x.name] = x; });
 
   submit_on_enter(fields.lumi);
 
@@ -680,7 +680,7 @@ function main() {
 
   // MxAODs
   const mxaods_div = $id('mxaods');
-  mxaods_div.querySelector('.show').addEventListener('click', e => {
+  $('.show',mxaods_div,{ events: { click: e => {
     let ul = mxaods_div.lastElementChild;
     if (ul.tagName !== 'UL') {
       ul = (function level(li,xs) {
@@ -706,11 +706,11 @@ function main() {
       e.target.textContent = '[show]';
     }
     move_pane();
-  });
+  }}});
 
   // migration
   const mig_div = $id('mig');
-  mig_div.querySelector('.show').addEventListener('click', e => {
+  $('.show',mig_div,{ events: { click: e => {
     const empty = mig_div.childElementCount < 2;
     if (empty) return;
     const style = mig_div.lastElementChild.style;
@@ -722,7 +722,7 @@ function main() {
       e.target.textContent = '[show]';
     }
     move_pane();
-  });
+  }}});
 
   // events
   for (const [name,f] of [
@@ -744,15 +744,14 @@ function main() {
     }
   });
 
-  const form = $q('form')[0];
-  form.addEventListener('submit', function(e){
+  form.addEventListener('submit', e => {
     e.preventDefault();
     try {
       const prev_state = Object.assign({},state);
       state_from_form();
       form_from_state();
 
-      const form_elements = this.querySelectorAll('input,select,button');
+      const form_elements = form.querySelectorAll('input,select,button');
       for (const x of form_elements) x.disabled = true;
       const loading = $id('loading');
       loading.style.removeProperty('display');

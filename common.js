@@ -3,6 +3,12 @@ const $ = (p,...args) => {
     const x = args.shift();
     if (x.constructor !== String) throw new Error('expected tag name');
     p = document.createElement(x);
+  } else if (p.constructor === String) {
+    p = (
+      args[0] instanceof Element ? args.shift() : document.body
+    ).querySelector(p);
+  } else if (p.constructor === Array) {
+    return p.map(x => $(x,...args));
   }
   for (let x of args) {
     if (x.constructor === String) {
@@ -49,10 +55,13 @@ const $ = (p,...args) => {
 
 const $id = id => document.getElementById(id);
 
-const $q = (q,f=null) => {
-  const xs = document.querySelectorAll(q);
-  if (f!==null) for (const x of xs) f(x);
-  return xs;
+const $$ = (...args) => {
+  const p = ( args[0] instanceof Element ? args.shift() : document.body );
+  const q = args.shift();
+  const f = args.shift();
+
+  const xs = [ ...p.querySelectorAll(q) ];
+  return f ? xs.map(f) : xs;
 };
 
 const clear = p => {
