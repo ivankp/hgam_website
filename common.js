@@ -11,8 +11,14 @@ const $ = (p,...args) => {
         : document.createElement(x)
       );
     } else if (x.constructor === Array) {
-      x = x.filter(x=>!!x);
-      if (x.length) p.classList.add(...x);
+      for (let c of x) {
+        const rm = c[0] === '-';
+        if (rm) c = c.substr(1);
+        if (!!c) {
+          if (rm) p.classList.remove(c);
+          else p.classList.add(c);
+        }
+      }
     } else if (x.constructor === Object) {
       for (const [key,val] of Object.entries(x)) {
         if (key==='style') {

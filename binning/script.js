@@ -1,4 +1,4 @@
-let state = { }, form = { };
+let state = { }, fields = { };
 let main_table, form_table;
 let main_table_ncols;
 let vars_names;
@@ -79,15 +79,14 @@ function toggle_unc_cols() {
     const nvars = tds.length - main_table_ncols;
     if (nvars >= 0)
       for (const i of [1,2,6,7])
-        tds[i+nvars].style['display'] = display;
+        tds[i+nvars].style.display = display;
   }
   $id('note').style.maxWidth = main_table.getBoundingClientRect().width+'px';
   move_pane();
 }
 
 function toggle_row_click(t) {
-  if (t.checked) main_table.classList.add('click');
-  else main_table.classList.remove('click');
+  $(main_table,[(t.checked?'':'-')+'click']);
 }
 
 function state_from_url() {
@@ -155,7 +154,7 @@ function state_from_form() {
     state_vars.push([ name, edges ]);
   }
 
-  let lumi = parseFloat(form.lumi.value);
+  let lumi = parseFloat(fields.lumi.value);
   if (Number.isNaN(lumi)) lumi = '';
 
   state.vars = state_vars;
@@ -166,7 +165,7 @@ function search_from_state(req=false) {
   let search = '';
   const d = () => search.length===0 ? '?' : '&';
 
-  const lumi = state['lumi'];
+  const lumi = state.lumi;
   if (lumi) search += d() + 'lumi=' + lumi;
 
   for (let i=0; i<state.vars.length; ++i) {
@@ -278,10 +277,10 @@ function fix_form_var_names(tr,d) {
 
 function form_from_state() {
   for (const x of ['unc','click'])
-    form[x].checked = x in state;
+    fields[x].checked = x in state;
 
   for (const x of ['lumi'])
-    form[x].value = state[x];
+    fields[x].value = state[x];
 
   clear(form_table);
   for (let i=0; i<state.vars.length; ++i) {
@@ -407,7 +406,7 @@ function process_resp() {
     }}).textContent = finite ? (100*purity).toFixed(2)+'%' : '—';
   },...vars);
 
-  form.lumi.value = lumi[0];
+  fields.lumi.value = lumi[0];
 
   $id('data_lumi').textContent =
     lumi.length < 2 ? '' : `(scaled from ${lumi[1]} ifb)`;
@@ -482,12 +481,11 @@ function draw_migration({migration:mig,vars,sig}) {
   });
 
   // hover
-  const info = $(div,'div',{class:'info'});
+  const info = $(div,'div',['info']);
   const over = $(svg,'rect',{
     x: 0, y: 0, width: len-4, height: len-4,
     fill: 'none', stroke: '#C00', 'stroke-width': 4
-  });
-  over.classList.add('hide');
+  },['hide']);
   const pt = svg.createSVGPoint();
   let r1, t1;
   $(svg,{ events: {
@@ -497,14 +495,14 @@ function draw_migration({migration:mig,vars,sig}) {
       const {x,y} = pt.matrixTransform(svg.getScreenCTM().inverse());
       const t = Math.floor(x/len), r = Math.floor((Len-y)/len);
       if (t < 0 || r < 0 || t >= nbins || r >= nbins) {
-        over.classList.add('hide');
+        [over,info].forEach(x => $(x,['hide']));
         t1 = undefined;
         r1 = undefined;
       } else if (t !== t1 || r !== r1) {
         t1 = t;
         r1 = r;
-        $(over,{ x: len*t+2, y: Len-len*(r+1)+2 }).classList.remove('hide');
-        // info.classList.remove('hide');
+        $(over,{ x: len*t+2, y: Len-len*(r+1)+2 });
+        [over,info].forEach(x => $(x,['-hide']));
 
         const nvars = vars.length;
         const tt = split_index(t,vars,x => x[1].length-1);
@@ -514,13 +512,11 @@ function draw_migration({migration:mig,vars,sig}) {
         const table = $(info,'table');
         let tr = $(table,'tr');
         $(tr,'td');
-        // $(tr,'td');
         for (let i=0; i<nvars; ++i) {
           $(tr,'td').textContent = vars[i][0];
         }
         tr = $(table,'tr');
         $(tr,'td').textContent = 'Truth';
-        // $(tr,'td').textContent = '--';
         for (let i=0; i<nvars; ++i) {
           $(tr,'td').textContent = '['
             + numfmt2(vars[i][1][tt[i]  ]) + ','
@@ -528,20 +524,16 @@ function draw_migration({migration:mig,vars,sig}) {
         }
         tr = $(table,'tr');
         $(tr,'td').textContent = 'Reco';
-        // $(tr,'td').textContent = '--';
         for (let i=0; i<nvars; ++i) {
           $(tr,'td').textContent = '['
             + numfmt2(vars[i][1][rr[i]  ]) + ','
             + numfmt2(vars[i][1][rr[i]+1]) + ')';
         }
 
-        $(info,'p').textContent = 'Monte Carlo: ' + mig[r*nbins+t];
+        $(info,'p').textContent = `${mig[r*nbins+t]} MC events`;
       }
     },
-    mouseleave: e => {
-      over.classList.add('hide');
-      // info.classList.add('hide');
-    },
+    mouseleave: e => { [over,info].forEach(x => $(x,['hide'])); }
   }});
 
   if (hide) svg.style.display = 'none';
@@ -551,9 +543,8 @@ function draw_migration({migration:mig,vars,sig}) {
     if (menu) menu.remove();
     menu = $(document.body,'div',{
       id: 'mig_context',
-      class: 'context',
       style: { 'display': 'none' }
-    });
+    },['context']);
     $(menu,'div',{ events: {
       click: e => {
         e.preventDefault();
@@ -600,10 +591,7 @@ function move_pane() {
 
 function save_svg(svg) {
   svg = svg.cloneNode(true);
-  for (const x of svg.querySelectorAll('.hide')) {
-    console.log(x.outerHTML);
-    x.remove();
-  }
+  for (const x of svg.querySelectorAll('.hide')) x.remove();
   dummy_a.href = URL.createObjectURL(new Blob(
     [ '<?xml version="1.0" encoding="UTF-8"?>\n',
       svg.outerHTML
@@ -633,7 +621,7 @@ function save_svg(svg) {
 
 function main() {
   const hide_contexts = () => {
-    $q('body > .context', x => { x.style['display'] = 'none'; });
+    $q('body > .context', x => { x.style.display = 'none'; });
   };
   window.addEventListener('keydown', e => {
     switch (e.which || e.keyCode) {
@@ -657,9 +645,9 @@ function main() {
   });
 
   // collect named form elements
-  $q('form [name]', x => { form[x.name] = x; });
+  $q('form [name]', x => { fields[x.name] = x; });
 
-  submit_on_enter(form['lumi']);
+  submit_on_enter(fields.lumi);
 
   form_table = $id('form_table');
   main_table = $($id('main_table'),'table');
@@ -688,7 +676,7 @@ function main() {
       tds[i].style['font-size'] = 'small';
   }
   toggle_unc_cols();
-  toggle_row_click(form.click);
+  toggle_row_click(fields.click);
 
   // MxAODs
   const mxaods_div = $id('mxaods');
@@ -741,7 +729,7 @@ function main() {
     ['unc', toggle_unc_cols],
     ['click', toggle_row_click]
   ]) {
-    form[name].addEventListener('change', e => {
+    fields[name].addEventListener('change', e => {
       if (e.target.checked) state[name] = null;
       else delete state[name];
       f(e.target);
@@ -750,14 +738,14 @@ function main() {
   }
 
   main_table.addEventListener('click', e => {
-    if (form.click.checked && e.target.nodeName=='TD') {
+    if (fields.click.checked && e.target.nodeName=='TD') {
       const i = e.target.parentElement.rowIndex;
       if (i >= 2) draw_myy_plot(i-2);
     }
   });
 
-  const the_form = $q('form')[0];
-  the_form.addEventListener('submit', function(e){
+  const form = $q('form')[0];
+  form.addEventListener('submit', function(e){
     e.preventDefault();
     try {
       const prev_state = Object.assign({},state);
@@ -772,7 +760,7 @@ function main() {
 
       const enable = () => {
         for (const x of form_elements) x.disabled = false;
-        loading.style['display'] = 'none';
+        loading.style.display = 'none';
       };
 
       fetch('req.php'+search_from_state(true),{
@@ -783,13 +771,13 @@ function main() {
         if ('error' in resp) {
           alert(resp.error);
         } else {
-          state['resp'] = resp;
+          state.resp = resp;
           url_from_state( // push if true, replace if false
             ( ('resp' in prev_state) &&
               (!!prev_state.lumi && state.lumi !== prev_state.lumi)
             ) || (
-              JSON.stringify(     state['vars']) !==
-              JSON.stringify(prev_state['vars'])
+              JSON.stringify(     state.vars) !==
+              JSON.stringify(prev_state.vars)
             )
           );
           process_resp();
@@ -808,7 +796,7 @@ function main() {
 
   // Submit form when page is loaded
   if (vars_names.length) {
-    the_form.dispatchEvent(
+    form.dispatchEvent(
       new CustomEvent('submit', {cancelable: true})
     );
   } else {
