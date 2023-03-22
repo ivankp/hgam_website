@@ -3,6 +3,10 @@ let main_table, form_table;
 let main_table_ncols;
 let vars_names;
 
+const dummy_a = document.createElement('a');
+
+const round = x => x.toFixed(4).replace(/\.?0*$/,'');
+
 const prod_loop = (f, ...aa) => {
   const na = aa.length;
   const nn = aa.map(x => x[1].length-1);
@@ -63,6 +67,11 @@ function toggle_unc_cols() {
   }
   $id('note').style.maxWidth = main_table.getBoundingClientRect().width+'px';
   move_pane();
+}
+
+function toggle_row_click(t) {
+  if (t.checked) main_table.classList.add('click');
+  else main_table.classList.remove('click');
 }
 
 function state_from_url() {
@@ -286,7 +295,7 @@ function form_from_state() {
     });
     add_var_events(select,edges,datalist,buttons);
     if (state.vars[i][1].length === 0) // try to set default value
-      // TODO: the chcek prevents options from populating the datalist on load
+      // TODO: the check prevents options from populating the datalist on load
       select.dispatchEvent(new CustomEvent('change'));
   }
 }
@@ -395,6 +404,7 @@ function process_resp() {
 
   move_pane();
 }
+
 function draw_migration({migration:mig,vars,sig}) {
   const nbins = sig.length;
   const Len = 2**4 * 3**2 * 5, len = Len/nbins;
@@ -453,7 +463,68 @@ function draw_migration({migration:mig,vars,sig}) {
     fill: 'none'
   });
 
+  const over = $(svg,'rect',{
+    x: 0, y: 0, width: len-4, height: len-4,
+    fill: 'none', stroke: '#C00', 'stroke-width': 4
+  });
+  over.classList.add('hide');
+  const pt = svg.createSVGPoint();
+  let i1, j1;
+  svg.addEventListener('mousemove', e => {
+    pt.x = e.clientX;
+    pt.y = e.clientY;
+    const {x,y} = pt.matrixTransform(svg.getScreenCTM().inverse());
+    const j = Math.floor(x/len), i = Math.floor((Len-y)/len);
+    if (j < 0 || i < 0) {
+      over.classList.add('hide');
+      j1 = undefined;
+      i1 = undefined;
+    } else if (j !== j1 || i !== i1) {
+      j1 = j;
+      i1 = i;
+      $(over,{ x: len*j+2, y: Len-len*(i+1)+2 }).classList.remove('hide');
+    }
+  });
+  svg.addEventListener('mouseleave', e => {
+    over.classList.add('hide');
+  });
+
   if (hide) svg.style.display = 'none';
+
+  // context menu
+  { let menu = $id('mig_context');
+    if (menu) menu.remove();
+    menu = $(document.body,'div',{
+      id: 'mig_context',
+      class: 'context',
+      style: { 'display': 'none' }
+    });
+    const item = $(menu,'div');
+    item.textContent = 'Save figure';
+    item.addEventListener('click', e => {
+      e.preventDefault();
+      save_svg(svg);
+    });
+
+    svg.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      $(menu,{ style: {
+        top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
+      }});
+    });
+  }
+}
+
+function draw_myy_plot(bin_i) {
+  // const hist = state.resp.hist;
+  // console.log(hist);
+  const div = clear($id('fit_plot'));
+  const div_plot = $(div,'div');
+  const div_info = $(div,'div');
+
+  console.log(bin_i);
+
+  move_pane();
 }
 
 function move_pane() {
@@ -472,7 +543,52 @@ function move_pane() {
   if (to !== from) to.appendChild(pane);
 }
 
+function save_svg(svg) {
+  svg = svg.cloneNode(true);
+  for (const x of svg.querySelectorAll('.hide')) {
+    console.log(x.outerHTML);
+    x.remove();
+  }
+  dummy_a.href = URL.createObjectURL(new Blob(
+    [ '<?xml version="1.0" encoding="UTF-8"?>\n',
+      svg.outerHTML
+      // add xml namespace
+      .replace(/^<svg\s*(?=[^>]*>)/,'<svg xmlns="'+svg.namespaceURI+'" ')
+      // self-closing tags
+      .replace(/<([^ <>\t]+)([^>]*)>\s*<\/\1>/g,'<$1$2/>')
+      // terse style
+      .replace(/(?<=style=")([^"]+)/g, (m,_1) => _1.replace(/\s*:\s*/g,':'))
+      // hex colors
+      .replace(/(?<=[:"])rgb\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)/g,
+        (m,_1,_2,_3) => [_1,_2,_3].reduce( (a,x) =>
+          a+Math.round(parseFloat(x)).toString(16).padStart(2,'0'), '#')
+      )
+      // round translations
+      .replace(/(?<=translate)\(([0-9.]+),([0-9.]+)\)/g,
+        (m,_1,_2) => `(${round(parseFloat(_1))},${round(parseFloat(_2))})`
+      )
+    ],
+    { type:"image/svg+xml;charset=utf-8" }
+  ));
+  dummy_a.download = 'migration_' +
+    decodeURIComponent(window.location.search.match(/(?<=\?)[^&]+/))
+    .replaceAll('/',' ') + '.svg';
+  dummy_a.click();
+}
+
 function main() {
+  const hide_contexts = () => {
+    $q('body > .context', x => { x.style['display'] = 'none'; });
+  };
+  window.addEventListener('keydown', e => {
+    switch (e.which || e.keyCode) {
+      case 27:
+        hide_contexts();
+        break;
+    }
+  });
+  window.addEventListener('click', hide_contexts);
+
   vars_names = Object.keys(binning).sort((a,b) => {
     a = a.toLowerCase();
     b = b.toLowerCase();
@@ -517,6 +633,7 @@ function main() {
       tds[i].style['font-size'] = 'small';
   }
   toggle_unc_cols();
+  toggle_row_click(form.click);
 
   // MxAODs
   const mxaods_div = $id('mxaods');
@@ -566,18 +683,25 @@ function main() {
   // events
   for (const [name,f] of [
     ['unc', toggle_unc_cols],
-    ['click', () => { /* TODO */ }]
+    ['click', toggle_row_click]
   ]) {
     form[name].addEventListener('change', e => {
       if (e.target.checked) state[name] = null;
       else delete state[name];
-      f();
+      f(e.target);
       url_from_state();
     });
   }
 
-  const form_element = $q('form')[0];
-  form_element.addEventListener('submit', function(e){
+  main_table.addEventListener('click', e => {
+    if (form.click.checked && e.target.nodeName=='TD') {
+      const i = e.target.parentElement.rowIndex;
+      if (i >= 2) draw_myy_plot(i-2);
+    }
+  });
+
+  const the_form = $q('form')[0];
+  the_form.addEventListener('submit', function(e){
     e.preventDefault();
     try {
       const prev_state = Object.assign({},state);
@@ -628,7 +752,7 @@ function main() {
 
   // Submit form when page is loaded
   if (vars_names.length) {
-    form_element.dispatchEvent(
+    the_form.dispatchEvent(
       new CustomEvent('submit', {cancelable: true})
     );
   } else {

@@ -73,12 +73,12 @@ form > div {
 }
 #mxaods .dir { color: #729fcf; font-weight: bold; }
 span.show {
+  cursor: pointer;
   color: blue;
   font-size: small;
   margin-left: 2px;
   user-select: none;
 }
-span.show:hover{ cursor: pointer; }
 
 #main_table > table {
   margin: 5px 0;
@@ -98,6 +98,32 @@ span.show:hover{ cursor: pointer; }
 #main_table td:nth-child(1) { text-align: left; }
 #main_table td:nth-child(n+2) { text-align: right; }
 
+#main_table > table.click tr:nth-child(n+3) {
+  user-select: none;
+  cursor: pointer;
+}
+#main_table > table.click tr:nth-child(n+3):hover {
+  background-color: #eee;
+}
+
 #form_table, #form_table_wrap { border-collapse: collapse; }
 #form_table_wrap td { vertical-align: baseline; }
 #form_table button { font-family: monospace; }
+
+.context {
+  position: fixed;
+  z-index: 10000;
+  width: 150px;
+  background: #fff;
+  border: 1px solid #dadce0;
+  border-radius: 1px;
+  font-size: small;
+}
+.context > * {
+  padding: 8px 10px;
+  cursor: pointer;
+  border-radius: inherit;
+}
+.context > *:hover {
+  background: #E8E8E9;
+}
