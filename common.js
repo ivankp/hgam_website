@@ -22,6 +22,13 @@ const $ = (p,...args) => {
             else
               p.style.removeProperty(skey);
           }
+        } else if (key==='events') {
+          for (const [k,v] of Object.entries(val)) {
+            if (v!==null)
+              p.addEventListener(k,v);
+            else
+              p.removeEventListener(k);
+          }
         } else {
           if (p instanceof SVGElement)
             p.setAttributeNS(null,key,val);

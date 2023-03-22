@@ -470,24 +470,26 @@ function draw_migration({migration:mig,vars,sig}) {
   over.classList.add('hide');
   const pt = svg.createSVGPoint();
   let i1, j1;
-  svg.addEventListener('mousemove', e => {
-    pt.x = e.clientX;
-    pt.y = e.clientY;
-    const {x,y} = pt.matrixTransform(svg.getScreenCTM().inverse());
-    const j = Math.floor(x/len), i = Math.floor((Len-y)/len);
-    if (j < 0 || i < 0) {
+  $(svg,{ events: {
+    mousemove: e => {
+      pt.x = e.clientX;
+      pt.y = e.clientY;
+      const {x,y} = pt.matrixTransform(svg.getScreenCTM().inverse());
+      const j = Math.floor(x/len), i = Math.floor((Len-y)/len);
+      if (j < 0 || i < 0) {
+        over.classList.add('hide');
+        j1 = undefined;
+        i1 = undefined;
+      } else if (j !== j1 || i !== i1) {
+        j1 = j;
+        i1 = i;
+        $(over,{ x: len*j+2, y: Len-len*(i+1)+2 }).classList.remove('hide');
+      }
+    },
+    mouseleave: e => {
       over.classList.add('hide');
-      j1 = undefined;
-      i1 = undefined;
-    } else if (j !== j1 || i !== i1) {
-      j1 = j;
-      i1 = i;
-      $(over,{ x: len*j+2, y: Len-len*(i+1)+2 }).classList.remove('hide');
-    }
-  });
-  svg.addEventListener('mouseleave', e => {
-    over.classList.add('hide');
-  });
+    },
+  }});
 
   if (hide) svg.style.display = 'none';
 
@@ -499,12 +501,12 @@ function draw_migration({migration:mig,vars,sig}) {
       class: 'context',
       style: { 'display': 'none' }
     });
-    const item = $(menu,'div');
-    item.textContent = 'Save figure';
-    item.addEventListener('click', e => {
-      e.preventDefault();
-      save_svg(svg);
-    });
+    $(menu,'div',{ events: {
+      click: e => {
+        e.preventDefault();
+        save_svg(svg);
+      }
+    }}).textContent = 'Save figure';
 
     svg.addEventListener('contextmenu', e => {
       e.preventDefault();
