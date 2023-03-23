@@ -486,7 +486,7 @@ function draw_migration({migration:mig,vars,sig}) {
     }
   }
 
-  $(div,{ style: { width: `${width/2.5}px` } });
+  $(div,{ style: { 'min-width': `${width/2.5}px` } });
   $(svg,{
     viewBox: `${-x_margin} 0 ${width} ${Len+y_margin}`,
     style: { 'font-family': 'Helvetica, Arial, sans-serif' }
@@ -494,13 +494,13 @@ function draw_migration({migration:mig,vars,sig}) {
 
   { let k = 0;
     const g = $(svg,'g');
-    prod_loop((ii,i) => { // reco
-      prod_loop((jj,j) => { // truth
-        const m = mig[k]/sig[i];
+    prod_loop((rr,r) => { // reco
+      prod_loop((tt,t) => { // truth
+        const m = mig[k]/sig[r];
 
         if (m > 0) $(g,'rect',{
-          x: len*j, y: Len-len*(i+1), width: len, height: len,
-          fill: d3.interpolateGreens( (mig[k]/sig[i])**(1/Math.E) )
+          x: len*t, y: Len-len*(r+1), width: len, height: len,
+          fill: d3.interpolateGreens( (mig[k]/sig[r])**(1/Math.E) )
         });
 
         ++k;
@@ -601,10 +601,51 @@ function draw_myy_plot(bin_i) {
   // const hist = state.resp.hist;
   // console.log(hist);
   const div = clear($id('fit_plot'));
-  const div_plot = $(div,'div');
-  const div_info = $(div,'div');
+  // const div_plot = $(div,'div');
+  // const div_info = $(div,'div');
 
-  console.log(bin_i);
+  // console.log(bin_i);
+
+  const resp = state.resp;
+  const bin = resp.hist[bin_i];
+  const plot = new Plot('#fit_plot',400,250,'white');
+
+  const {fiducial,bin_width,signal} = resp.m_yy;
+
+  plot.axes(
+    { range: fiducial, padding: [33,10], label: 'm_yy [GeV]' },
+    { range: [0,d3.max(bin[0].concat(bin[1]))*1.05], padding: [45,5], nice: true }
+  );
+
+  const hist_bin = x0 => (x,i) => [
+    x0+i*bin_width, x0+(i+1)*bin_width, x, Math.sqrt(x)
+  ];
+
+  plot.hist(
+    bin[0].map(
+      hist_bin(fiducial[0])
+    ).concat( bin[1].map(
+      hist_bin(signal[1])
+    ))
+  ).attrs({
+    stroke: '#000099',
+    'stroke-width': 2
+  });
+
+  const fit = resp.fit[bin_i];
+
+  plot.fcurve({
+    f: x => {
+      x -= 125;
+      return Math.exp( fit.reduce((a,p,i) => a + p*x**i) );
+    },
+    a: fiducial[0], b: fiducial[1], n: 100
+  }).attrs({
+    stroke: 'red',
+    fill: 'none',
+    'stroke-width': 2,
+    'stroke-opacity': 0.65
+  });
 
   move_pane();
 }

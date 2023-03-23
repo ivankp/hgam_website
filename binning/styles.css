@@ -135,3 +135,7 @@ span.show {
 #mig .info > p {
   margin: 2px 3px;
 }
+
+#fit_plot {
+  margin-top: 18px;
+}

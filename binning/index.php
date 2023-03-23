@@ -8,6 +8,8 @@ $styles = [
 $scripts = [
   '../js/d3.v6.min.js',
   '../js/d3-color.v1.min.js',
+  '../js/d3-selection-multi.v1.min.js',
+  '../js/d3-plot.js',
   '../common.js', 'script.js'
 ];
 
