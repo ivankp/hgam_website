@@ -429,7 +429,7 @@ function draw_migration({migration:mig,vars,sig}) {
   const hide = !empty && last.style.display;
   if (!empty) last.remove();
 
-  div = $(div,'div');
+  div = $(div,'div',{ style: { width: '300px' } });
   const svg = $(div,'svg');
 
   const axis_w = 4;
@@ -454,8 +454,8 @@ function draw_migration({migration:mig,vars,sig}) {
   const x_margin = bbox.width + axis_w + 2;
 
   $(svg,{
-    viewBox:`${-x_margin} 0 ${Len+x_margin} ${Len+y_margin}`,
-    style: { width: '300px' }
+    viewBox: `${-x_margin} 0 ${Len+x_margin} ${Len+y_margin}`,
+    style: { 'font-family': 'Helvetica, Arial, sans-serif' }
   });
 
   let k = 0;
