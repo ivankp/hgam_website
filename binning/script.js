@@ -5,7 +5,7 @@ let vars_names;
 
 const dummy_a = document.createElement('a');
 
-const round = x => x.toFixed(4).replace(/\.?0*$/,'');
+const round = (x,n) => x.toFixed(n).replace(/\.?0*$/,'');
 
 const split_index = (k,xs,f) => {
   const nn = xs.length;
@@ -429,7 +429,7 @@ function draw_migration({migration:mig,vars,sig}) {
   const hide = !empty && last.style.display;
   if (!empty) last.remove();
 
-  div = $(div,'div',{ style: { width: '300px' } });
+  div = $(div,'div');
   const svg = $(div,'svg');
 
   const axis_w = 4;
@@ -453,24 +453,60 @@ function draw_migration({migration:mig,vars,sig}) {
   });
   const x_margin = bbox.width + axis_w + 2;
 
+  const scale_n = 60;
+  const scale_w = 50;
+  const scale_h = Len/scale_n;
+  const scale_l = 12;
+  const scale_r = 71;
+
+  { const g = $(svg,'g');
+    const step = 1/(scale_n-1);
+    for (let i=0; i<scale_n; ++i) {
+      $(g,'rect',{
+        x: Len+scale_l, y: scale_h*i,
+        width: scale_w, height: scale_h+(scale_n-i===1 ? 0 : 2),
+        fill: d3.interpolateGreens( (1-i*step) )
+      });
+    }
+  }
+
+  const width = Len + x_margin + scale_l + scale_w + scale_r;
+
+  { const g = $(svg,'g',{ style: { 'font-size': '25px' } });
+    const x = Len+scale_l+scale_w;
+    for (const v of [1,0.9,0.8,0.7,0.6,0.5,0.4,0.3,0.2,0.1,0.05,0.01,0.001]) {
+      const y = (1-v**(1/Math.E))*Len;
+      $(g,'line',{
+        x1: x, x2: x+12, y1: y+1, y2: y+1,
+        stroke: '#000', 'stroke-width': 2
+      });
+      const t = $(g,'text',{ x: x+5 });
+      t.textContent = `${v*100}%`;
+      $(t,{ y: y + 25 });
+    }
+  }
+
+  $(div,{ style: { width: `${width/2.5}px` } });
   $(svg,{
-    viewBox: `${-x_margin} 0 ${Len+x_margin} ${Len+y_margin}`,
+    viewBox: `${-x_margin} 0 ${width} ${Len+y_margin}`,
     style: { 'font-family': 'Helvetica, Arial, sans-serif' }
   });
 
-  let k = 0;
-  prod_loop((ii,i) => { // reco
-    prod_loop((jj,j) => { // truth
-      const m = mig[k]/sig[i];
+  { let k = 0;
+    const g = $(svg,'g');
+    prod_loop((ii,i) => { // reco
+      prod_loop((jj,j) => { // truth
+        const m = mig[k]/sig[i];
 
-      if (m > 0) $(svg,'rect',{
-        x: len*j, y: Len-len*(i+1), width: len, height: len,
-        fill: d3.interpolateGreens(1/-Math.log(mig[k]/sig[i]))
-      });
+        if (m > 0) $(g,'rect',{
+          x: len*j, y: Len-len*(i+1), width: len, height: len,
+          fill: d3.interpolateGreens( (mig[k]/sig[i])**(1/Math.E) )
+        });
 
-      ++k;
+        ++k;
+      },...vars);
     },...vars);
-  },...vars);
+  }
 
   $(svg,'path',{ // axes
     d: `M ${-axis_w/2} 0 V ${Len+axis_w/2} H ${Len+axis_w/2}`,
@@ -529,7 +565,8 @@ function draw_migration({migration:mig,vars,sig}) {
             + numfmt2(vars[i][1][rr[i]+1]) + ')';
         }
 
-        $(info,'p').textContent = `${mig[r*nbins+t]} MC events`;
+        $(info,'p').textContent = `Monte Carlo events: ${round(mig[r*nbins+t],3)}`;
+        $(info,'p').textContent = `Reco %: ${round(100*mig[r*nbins+t]/sig[r],3)}%`;
       }
     },
     mouseleave: e => { $([over,info],['hide']); }
@@ -607,7 +644,7 @@ function save_svg(svg) {
       )
       // round translations
       .replace(/(?<=translate)\(([0-9.]+),([0-9.]+)\)/g,
-        (m,_1,_2) => `(${round(parseFloat(_1))},${round(parseFloat(_2))})`
+        (m,_1,_2) => `(${round(parseFloat(_1),4)},${round(parseFloat(_2),4)})`
       )
     ],
     { type:"image/svg+xml;charset=utf-8" }
