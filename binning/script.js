@@ -610,17 +610,12 @@ function draw_migration({migration:mig,vars,sig}) {
 }
 
 function draw_myy_plot(bin_i) {
-  // const hist = state.resp.hist;
-  // console.log(hist);
   const div = clear($id('fit_plot'));
-  // const div_plot = $(div,'div');
-  // const div_info = $(div,'div');
-
-  // console.log(bin_i);
 
   const resp = state.resp;
   const bin = resp.hist[bin_i];
   const plot = new Plot('#fit_plot',400,250,'white');
+  const svg = plot.svg.node();
 
   const {fiducial,bin_width,signal} = resp.m_yy;
 
@@ -659,9 +654,41 @@ function draw_myy_plot(bin_i) {
     'stroke-opacity': 0.65
   });
 
-  move_pane();
+  { let y = 20;
+    const bb = split_index(bin_i,resp.vars,x => x[1].length-1);
+    for (let i=0; i<bb.length; ++i) {
+      const [name,edges] = resp.vars[i];
+      const b = bb[i];
+      $(svg,'text',{
+        x: plot.scales[0](121), y,
+        fill: '#000', 'font-family': 'sans-serif', 'font-size': '12px'
+      }).textContent = name + ' \u2208 ['
+        + numfmt2(edges[b  ]) + ','
+        + numfmt2(edges[b+1]) + ')';
+      y += 16;
+    }
+  }
 
-  const svg = plot.svg.node();
+  // TODO: hide fit plot on Rebin
+
+  // TODO: fit plot info
+  // const num_fmt = x => x
+  //   .toExponential(3)
+  //   .replace(/^([^-])/,'&nbsp;$1')
+  //   .replace(/(e[+-])([0-9])$/,'$10$2');
+  // const cov = bin.fit.cov.map(num_fmt);
+  // $('#fit_plot').find('#fit_params').remove().end().append(
+  //   '<div id="fit_params"><div>' +
+  //   '&chi;<sup>2</sup> = ' + bin.fit.chi2 + '<br>' +
+  //   p.map((p,i) => 'p<sub>'+i+'</sub> = '+num_fmt(p)).join('<br>') +
+  //   '</div><div style="margin-left:20px;">ndf = 44<br>cov:<br>' +
+  //   cov[0] +' '+ cov[3] +' '+ cov[4] + '<br>' +
+  //   cov[3] +' '+ cov[1] +' '+ cov[5] + '<br>' +
+  //   cov[4] +' '+ cov[5] +' '+ cov[2] + '<br>' +
+  //   '</div></div>'
+  // );
+
+  move_pane();
 
   // context menu
   { let menu = $id('fit_context');
