@@ -4,9 +4,7 @@ this.container = d3.select(select);
 this.container.select('svg').remove();
 this.svg = this.container.append('svg').attrs({
   width: width,
-  height: height,
-  version: '1.1',
-  xmlns: 'http://www.w3.org/2000/svg'
+  height: height
 });
 if (bkg!=null) this.svg.append('rect').attrs({
   width: width,

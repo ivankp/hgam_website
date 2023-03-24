@@ -15,18 +15,31 @@ $scripts = [
 
 include '../head.php';
 
-$binning = json_decode(file_get_contents('vars.json'));
-foreach ($binning as $k => $v) {
-  if (
-    !file_exists('data/'.$k.'_data.dat') ||
-    !file_exists('data/'.$k.'_mc.dat')
-  ) {
-    unset($binning->{$k});
+$data_dirs = array();
+if ($handle = opendir('data')) {
+  while (false !== ($entry = readdir($handle)))
+    if ($entry[0]!=='.' && is_dir('data/'.$entry))
+      $data_dirs[] = $entry;
+}
+arsort($data_dirs);
+
+$data = array();
+foreach ($data_dirs as $d) {
+  $dd = 'data/'.$d.'/';
+  $vars = json_decode(file_get_contents($dd.'vars.json'));
+  foreach ($vars as $k => $v) {
+    if (
+      !file_exists($dd.$k.'_data.dat') ||
+      !file_exists($dd.$k.'_mc.dat')
+    ) {
+      unset($vars->{$k});
+    }
   }
+  $data[] = array($d,$vars);
 }
 ?>
 <script>
-const binning = <?php echo json_encode($binning);?>;
+const data = <?php echo json_encode($data,JSON_UNESCAPED_SLASHES);?>;
 const mxaods = <?php include 'mxaods.json';?>;
 </script>
 <?php

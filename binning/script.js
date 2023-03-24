@@ -2,6 +2,7 @@ let state = { }, fields = { };
 let main_table, form_table;
 let main_table_ncols;
 let vars_names;
+let data_dict, binning;
 
 const dummy_a = document.createElement('a');
 
@@ -89,6 +90,10 @@ function toggle_row_click(t) {
   $(main_table,[(t.checked?'':'-')+'click']);
 }
 
+const hide_contexts = () => {
+  $$('.context', x => { x.style.display = 'none'; });
+};
+
 function state_from_url() {
   let xi = { };
   let q = location.search;
@@ -97,14 +102,13 @@ function state_from_url() {
     for (const x of q.split('&')) {
       let i = x.indexOf('=');
       const [k,v] = i === -1 ? [ x, '' ] : [ x.slice(0,i), x.slice(i+1) ];
-      if (['lumi'].includes(k)) {
+      if (['lumi','data'].includes(k)) {
         state[k] = v;
       } else if (['unc','click'].includes(k)) {
         state[k] = null;
       } else if (k.match(/x[1-9]/)) {
         if (v==null || v.length==0) continue;
         const edges = v.split('+');
-        if (!(edges[0] in binning)) continue;
         if (!(edges[0] in xi))
           xi[edges[0]] = [
             parseInt(k.slice(1)),
@@ -114,11 +118,19 @@ function state_from_url() {
     }
   }
 
+  let lumi = parseFloat(state.lumi);
+  state.lumi = isNaN(lumi) ? '' : lumi;
+
+  if (!(state.data in data_dict))
+    state.data = data[0][0];
+  binning = data_dict[state.data];
+
   // collect selected variables or use default
   xi = Object.entries(xi);
   state.vars = (
     xi.length > 0
-    ? xi.map(x => [x[1][0],x[0],x[1][1]])
+    ? xi.filter(x => x[0] in binning)
+        .map(x => [x[1][0],x[0],x[1][1]])
         .sort()
         .map((x,i) => [x[1],x[2]])
     : [[
@@ -126,9 +138,6 @@ function state_from_url() {
       []
     ]]
   );
-
-  let lumi = parseFloat(state.lumi);
-  state.lumi = isNaN(lumi) ? '' : lumi;
 }
 
 function state_from_form() {
@@ -164,8 +173,10 @@ function search_from_state(req=false) {
   let search = '';
   const d = () => search.length===0 ? '?' : '&';
 
-  const lumi = state.lumi;
-  if (lumi) search += d() + 'lumi=' + lumi;
+  for (const k of ['data','lumi']) {
+    const v = state[k];
+    if (v) search += d() + k + '=' + v;
+  }
 
   for (let i=0; i<state.vars.length; ++i) {
     const [name,edges] = state.vars[i];
@@ -584,12 +595,13 @@ function draw_migration({migration:mig,vars,sig}) {
     $(menu,'div',{ events: {
       click: e => {
         e.preventDefault();
-        save_svg(svg);
+        save_svg(svg,'migration');
       }
     }}).textContent = 'Save figure';
 
     svg.addEventListener('contextmenu', e => {
       e.preventDefault();
+      hide_contexts();
       $(menu,{ style: {
         top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
       }});
@@ -648,6 +660,31 @@ function draw_myy_plot(bin_i) {
   });
 
   move_pane();
+
+  const svg = plot.svg.node();
+
+  // context menu
+  { let menu = $id('fit_context');
+    if (menu) menu.remove();
+    menu = $(document.body,'div',{
+      id: 'fit_context',
+      style: { 'display': 'none' }
+    },['context']);
+    $(menu,'div',{ events: {
+      click: e => {
+        e.preventDefault();
+        save_svg(svg,`myy_fit_bin${bin_i}`);
+      }
+    }}).textContent = 'Save figure';
+
+    svg.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      hide_contexts();
+      $(menu,{ style: {
+        top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
+      }});
+    });
+  }
 }
 
 function move_pane() {
@@ -666,7 +703,7 @@ function move_pane() {
   if (to !== from) to.appendChild(pane);
 }
 
-function save_svg(svg) {
+function save_svg(svg,prefix) {
   svg = svg.cloneNode(true);
   $$(svg,'.hide',x => x.remove());
   dummy_a.href = URL.createObjectURL(new Blob(
@@ -690,36 +727,26 @@ function save_svg(svg) {
     ],
     { type:"image/svg+xml;charset=utf-8" }
   ));
-  dummy_a.download = 'migration_' +
-    decodeURIComponent(window.location.search.match(/(?<=\?)[^&]+/))
-    .replaceAll('/',' ') + '.svg';
+  dummy_a.download = prefix + search_from_state(true) + '.svg';
   dummy_a.click();
 }
 
 function main() {
-  const hide_contexts = () => {
-    $$('.context', x => { x.style.display = 'none'; });
-  };
-  window.addEventListener('keydown', e => {
-    switch (e.which || e.keyCode) {
-      case 27:
-        hide_contexts();
-        break;
+  $(window,{ events: {
+    keydown: e => {
+      switch (e.which || e.keyCode) {
+        case 27:
+          hide_contexts();
+          break;
+      }
+    },
+    click: hide_contexts,
+    popstate: e => {
+      state = e.state;
+      form_from_state();
+      if ('resp' in state) process_resp();
     }
-  });
-  window.addEventListener('click', hide_contexts);
-
-  vars_names = Object.keys(binning).sort((a,b) => {
-    a = a.toLowerCase();
-    b = b.toLowerCase();
-    return a < b ? -1 : (a > b ? 1 : 0);
-  });
-
-  window.addEventListener('popstate', (e) => {
-    state = e.state;
-    form_from_state();
-    if ('resp' in state) process_resp();
-  });
+  }});
 
   // collect named form elements
   const form = $('form');
@@ -730,8 +757,17 @@ function main() {
   form_table = $id('form_table');
   main_table = $($id('main_table'),'table');
 
+  data_dict = Object.fromEntries(data);
+
   // get state from url
   state_from_url();
+
+  vars_names = Object.keys(binning).sort((a,b) => {
+    a = a.toLowerCase();
+    b = b.toLowerCase();
+    return a < b ? -1 : (a > b ? 1 : 0);
+  });
+
   url_from_state();
   form_from_state();
 
