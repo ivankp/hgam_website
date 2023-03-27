@@ -669,8 +669,6 @@ function draw_myy_plot(bin_i) {
     }
   }
 
-  // TODO: hide fit plot on Rebin
-
   // TODO: fit plot info
   // const num_fmt = x => x
   //   .toExponential(3)
@@ -687,6 +685,39 @@ function draw_myy_plot(bin_i) {
   //   cov[4] +' '+ cov[5] +' '+ cov[2] + '<br>' +
   //   '</div></div>'
   // );
+
+  const info = $(div,'div',['info']);
+  const num_fmt = x => x.toExponential(3)
+    .replace(/^([^-])/,'&nbsp;$1')
+    .replace(/(e[+-])([0-9])$/,'$10$2');
+
+  const  params = resp.fit[bin_i];
+  const nparams = params.length;
+
+  $(info,'p').textContent = 'x = m_yy - 125';
+  { let eq = 'y = exp( ';
+    for (let i=0; i<nparams; ++i) {
+      if (i>0) eq += ' + ';
+      eq += `c<sub>${i}</sub>`;
+      if (i>0) eq += 'x';
+      if (i>1) eq += `<sup>${i}</sup>`;
+    }
+    eq += ' )';
+    $(info,'p').innerHTML = eq;
+  }
+  $(info,'p').innerHTML =
+    'params: [&nbsp;' + resp.fit[bin_i].map(num_fmt).join(', ') + '&nbsp;]';
+
+  { $(info,'p').textContent = 'covariance:';
+    const cov = resp.cov[bin_i];
+    const table = $(info,'table',{style:{'border-spacing':'1ch 1px'}});
+    for (let i=0; i<nparams; ++i) {
+      const tr = $(table,'tr');
+      for (let j=0; j<nparams; ++j)
+        $(tr,'td').innerHTML =
+          num_fmt(cov[i < j ? j*(j+1)/2+i : i*(i+1)/2+j]);
+    }
+  }
 
   move_pane();
 
@@ -897,6 +928,8 @@ function main() {
       const loading = $id('loading');
       loading.style.removeProperty('display');
       $id('run_time').textContent = '';
+
+      clear($id('fit_plot'));
 
       const enable = () => {
         for (const x of form_elements) x.disabled = false;

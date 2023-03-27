@@ -139,3 +139,10 @@ span.show {
 #fit_plot {
   margin-top: 18px;
 }
+#fit_plot > .info {
+  font-size: small;
+  font-family: monospace;
+}
+#fit_plot > .info > p {
+  margin: 0;
+}
