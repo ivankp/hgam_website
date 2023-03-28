@@ -337,7 +337,9 @@ function process_resp() {
   }
 
   console.log(state.resp);
-  const { vars, migration: mig, lumi, bkg, sig, sig_sys } = state.resp;
+  const {
+    vars, migration: mig, lumi, bkg, bkg_sys, sig, sig_sys
+  } = state.resp;
 
   if (vars === undefined || vars.length === 0) {
     console.log(state.resp);
@@ -376,7 +378,7 @@ function process_resp() {
     b = b[1];
     $(tr,'td').textContent = b.toFixed(2);
 
-    $(tr,'td').textContent = 'TODO';
+    $(tr,'td').textContent = (100*bkg_sys[j]/b).toFixed(2)+'%';
     $(tr,'td').textContent = b === 0 ? '—' :
       (100/Math.sqrt(b)).toFixed(2)+'%'; // √n/n = 1/√n
 
@@ -669,23 +671,6 @@ function draw_myy_plot(bin_i) {
     }
   }
 
-  // TODO: fit plot info
-  // const num_fmt = x => x
-  //   .toExponential(3)
-  //   .replace(/^([^-])/,'&nbsp;$1')
-  //   .replace(/(e[+-])([0-9])$/,'$10$2');
-  // const cov = bin.fit.cov.map(num_fmt);
-  // $('#fit_plot').find('#fit_params').remove().end().append(
-  //   '<div id="fit_params"><div>' +
-  //   '&chi;<sup>2</sup> = ' + bin.fit.chi2 + '<br>' +
-  //   p.map((p,i) => 'p<sub>'+i+'</sub> = '+num_fmt(p)).join('<br>') +
-  //   '</div><div style="margin-left:20px;">ndf = 44<br>cov:<br>' +
-  //   cov[0] +' '+ cov[3] +' '+ cov[4] + '<br>' +
-  //   cov[3] +' '+ cov[1] +' '+ cov[5] + '<br>' +
-  //   cov[4] +' '+ cov[5] +' '+ cov[2] + '<br>' +
-  //   '</div></div>'
-  // );
-
   const info = $(div,'div',['info']);
   const num_fmt = x => x.toExponential(3)
     .replace(/^([^-])/,'&nbsp;$1')
@@ -718,6 +703,8 @@ function draw_myy_plot(bin_i) {
           num_fmt(cov[i < j ? j*(j+1)/2+i : i*(i+1)/2+j]);
     }
   }
+
+  $(info,'p').innerHTML = `χ<sup>2</sup> = ${resp.chi2[bin_i]}`;
 
   move_pane();
 
