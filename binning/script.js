@@ -579,7 +579,9 @@ function draw_migration({migration:mig,vars,sig}) {
         }
 
         $(info,'p').textContent = `Monte Carlo events: ${round(mig[r*nbins+t],3)}`;
-        $(info,'p').textContent = `Reco %: ${round(100*mig[r*nbins+t]/sig[r],3)}%`;
+        $(info,'p').textContent = 'Reco %: ' + (
+          sig[r] !== 0 ? `${round(100*mig[r*nbins+t]/sig[r],3)}%` : '—'
+        );
       }
     },
     mouseleave: e => { $([over,info],['hide']); }
