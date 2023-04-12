@@ -40,7 +40,7 @@ foreach ($data_dirs as $d) {
 ?>
 <script>
 const data = <?php echo json_encode($data,JSON_UNESCAPED_SLASHES);?>;
-const mxaods = <?php include 'mxaods.json';?>;
+const mxaods = <?php include 'data/'.$data_dirs[0].'/mxaods.json';?>;
 </script>
 <?php
 include '../nav.php';

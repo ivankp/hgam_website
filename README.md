@@ -36,6 +36,7 @@ For example:
 │       ├── pT_j1_30_mc.dat
 │       ├── pT_yy_data.dat
 │       ├── pT_yy_mc.dat
+│       ├── mxaods.json
 │       └── vars.json
 ```
 
