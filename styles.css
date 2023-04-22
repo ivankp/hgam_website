@@ -76,6 +76,8 @@ nav ul li:hover > ul {
 .math { font-style: italic; }
 .mathrm { font-style: normal; }
 
+.bold { font-weight: bold; }
+
 .nowrap { white-space: nowrap; }
 
 .hide { display: none; }

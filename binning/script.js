@@ -702,7 +702,7 @@ function draw_myy_data_plot(bin_i) {
   const  params = resp.fit[bin_i];
   const nparams = params.length;
 
-  $(info,'p',{style:{'font-weight':'bold'}}).textContent = `Bin ${bin_i+1}`;
+  $(info,'p',['bold']).textContent = `Bin ${bin_i+1}`;
   $(info,'p').textContent = 'x = m_yy - 125';
   { let eq = 'y = exp( ';
     for (let i=0; i<nparams; ++i) {
