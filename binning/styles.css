@@ -143,13 +143,16 @@ span.show {
   margin: 2px 3px;
 }
 
-#fit_plot {
+#data_plot,
+#mc_plot {
   margin-top: 18px;
 }
-#fit_plot > .info {
+#data_plot > .info,
+#mc_plot > .info {
   font-size: small;
   font-family: monospace;
 }
-#fit_plot > .info > p {
+#data_plot > .info > p,
+#mc_plot > .info > p {
   margin: 0;
 }

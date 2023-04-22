@@ -112,7 +112,8 @@ See the
 <div id="pane">
   <div id="mxaods"><p>MxAOD files <span class="show">[show]</span></p></div>
   <div id="mig"><p>Reco migration <span class="show">[hide]</span></p></div>
-  <div id="fit_plot"></div>
+  <div id="data_plot"></div>
+  <div id="mc_plot"></div>
 </div>
 
 </div>

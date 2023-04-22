@@ -71,6 +71,13 @@ nav ul li:hover > ul {
   box-shadow: 4px 8px 12px 0px rgba(0,0,0,0.2);
 }
 
+nav img {
+  vertical-align: -2px;
+  margin: 0;
+  padding: 0px 6px 0px 0px;
+  height: 14px;
+}
+
 /* ================================================================ */
 
 .math { font-style: italic; }

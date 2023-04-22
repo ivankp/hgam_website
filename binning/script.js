@@ -635,16 +635,67 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
   }
 }
 
+function draw_myy_mc_plot(bin_i) {
+  const div = clear($id('mc_plot'));
+
+  const resp = state.resp;
+  const bin = resp.hist_mc[bin_i];
+  const plot = new Plot('#mc_plot',400,250,'white');
+  const svg = plot.svg.node();
+
+  const {fiducial,signal,bin_width:{mc:wm}} = resp.m_yy;
+
+  plot.axes(
+    { range: fiducial, padding: [33,10], label: 'm_yy [GeV]' },
+    { range: [0,d3.max(bin.map(x => x[0]))*1.05], padding: [45,5], nice: true }
+    // { range: plot.hist_yrange(bin.map(x => x[0]),true),
+    //   padding: [45,5]
+    // }
+  );
+
+  const hist_bin =
+    x0 => ([w,w2],i) => [ x0+i*wm, x0+(i+1)*wm, w, Math.sqrt(w2) ];
+
+  plot.hist(
+    bin.map( hist_bin(fiducial[0]) )
+  ).attrs({
+    stroke: '#000099',
+    'stroke-width': 2
+  });
+
+  // context menu
+  { let menu = $id('mc_plot_context');
+    if (menu) menu.remove();
+    menu = $(document.body,'div',{
+      id: 'mc_plot_context',
+      style: { 'display': 'none' }
+    },['context']);
+    $(menu,'div',{ events: {
+      click: e => {
+        e.preventDefault();
+        save_svg(svg,`myy_fit_bin${bin_i+1}`);
+      }
+    }}).textContent = 'Save figure';
+
+    svg.addEventListener('contextmenu', e => {
+      e.preventDefault();
+      hide_contexts();
+      $(menu,{ style: {
+        top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
+      }});
+    });
+  }
+}
+
 function draw_myy_data_plot(bin_i) {
-  const div = clear($id('fit_plot'));
+  const div = clear($id('data_plot'));
 
   const resp = state.resp;
   const bin = resp.hist[bin_i];
-  const plot = new Plot('#fit_plot',400,250,'white');
+  const plot = new Plot('#data_plot',400,250,'white');
   const svg = plot.svg.node();
 
-  const {fiducial,signal} = resp.m_yy;
-  const wd = resp.m_yy.bin_width.data;
+  const {fiducial,signal,bin_width:{data:wd}} = resp.m_yy;
 
   plot.axes(
     { range: fiducial, padding: [33,10], label: 'm_yy [GeV]' },
@@ -733,16 +784,16 @@ function draw_myy_data_plot(bin_i) {
   move_pane();
 
   // context menu
-  { let menu = $id('fit_context');
+  { let menu = $id('data_plot_context');
     if (menu) menu.remove();
     menu = $(document.body,'div',{
-      id: 'fit_context',
+      id: 'data_plot_context',
       style: { 'display': 'none' }
     },['context']);
     $(menu,'div',{ events: {
       click: e => {
         e.preventDefault();
-        save_svg(svg,`myy_fit_bin${bin_i}`);
+        save_svg(svg,`myy_fit_bin${bin_i+1}`);
       }
     }}).textContent = 'Save figure';
 
@@ -931,7 +982,10 @@ function main() {
   main_table.addEventListener('click', e => {
     if (fields.click.checked && e.target.nodeName=='TD') {
       const i = e.target.parentElement.rowIndex;
-      if (i >= 2) draw_myy_data_plot(i-2);
+      if (i >= 2) {
+        draw_myy_data_plot(i-2);
+        draw_myy_mc_plot(i-2);
+      }
     }
   });
 
@@ -948,7 +1002,8 @@ function main() {
       loading.style.removeProperty('display');
       $id('run_time').textContent = '';
 
-      clear($id('fit_plot'));
+      clear($id('data_plot'));
+      clear($id('mc_plot'));
 
       const enable = () => {
         for (const x of form_elements) x.disabled = false;
