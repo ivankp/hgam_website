@@ -13,22 +13,32 @@
   margin-bottom: 5px;
 }
 
-#top { font-size: 11pt; }
-#top p { margin: 0 0 10px 0; }
+#top p {
+  margin: 0 0 10px 0;
+  font-size: small;
+  color: #0033A0;
+  font-weight: bold;
+}
 #top img { margin: 0 4px 0 30px; }
 
 span.bar {
   text-decoration: overline;
 }
 
-label {
+form label {
   user-select: none;
+  font-size: small;
 }
-label > * {
+form label > * {
   vertical-align: middle;
 }
+.small {
+  font-size: small;
+}
 
-input[name="lumi"] {
+input[name="lumi"],
+input[name="wd"],
+input[name="wm"] {
   text-align: right;
   margin: 0 5px 0 5px;
 }
@@ -54,10 +64,7 @@ input[name="edges"] {
 }
 
 form > div {
-  margin: 2px 0;
-}
-.checks {
-  font-size: small;
+  margin: 3px 0;
 }
 
 #mxaods > p { padding: 0; margin: 0; }
@@ -95,8 +102,8 @@ span.show {
   padding: 1px 6px;
   white-space: nowrap;
 }
-#main_table td:nth-child(1) { text-align: left; }
-#main_table td:nth-child(n+2) { text-align: right; }
+#main_table td { text-align: right; }
+#main_table td.left { text-align: left; }
 
 #main_table > table.click tr:nth-child(n+3) {
   user-select: none;

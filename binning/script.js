@@ -102,9 +102,9 @@ function state_from_url() {
     for (const x of q.split('&')) {
       let i = x.indexOf('=');
       const [k,v] = i === -1 ? [ x, '' ] : [ x.slice(0,i), x.slice(i+1) ];
-      if (['lumi','data'].includes(k)) {
+      if (['lumi','data','wd','wm'].includes(k)) {
         state[k] = v;
-      } else if (['unc','click'].includes(k)) {
+      } else if (['fitmc','unc','click'].includes(k)) {
         state[k] = null;
       } else if (k.match(/x[1-9]/)) {
         if (v==null || v.length==0) continue;
@@ -118,8 +118,10 @@ function state_from_url() {
     }
   }
 
-  let lumi = parseFloat(state.lumi);
-  state.lumi = isNaN(lumi) ? '' : lumi;
+  for (const name of ['lumi','wd','wm']) {
+    const x = parseFloat(state[name]);
+    state[name] = Number.isNaN(x) ? '' : x;
+  }
 
   if (!(state.data in data_dict))
     state.data = data[0][0];
@@ -148,7 +150,7 @@ function state_from_form() {
     b = b.name;
     return a < b ? -1 : (a > b ? 1 : 0);
   });
-  state_vars = [ ];
+  const state_vars = [ ];
   for (let i=0; i<form_vars.length; i+=2) {
     const name = form_vars[i].value;
     if (name in unique_vars)
@@ -161,19 +163,19 @@ function state_from_form() {
     }
     state_vars.push([ name, edges ]);
   }
-
-  let lumi = parseFloat(fields.lumi.value);
-  if (Number.isNaN(lumi)) lumi = '';
-
   state.vars = state_vars;
-  state.lumi = lumi;
+
+  for (const name of ['lumi','wd','wm']) {
+    const x = parseFloat(fields[name].value);
+    state[name] = Number.isNaN(x) ? '' : x;
+  }
 }
 
 function search_from_state(req=false) {
   let search = '';
   const d = () => search.length===0 ? '?' : '&';
 
-  for (const k of ['data','lumi']) {
+  for (const k of ['data','lumi','wd','wm']) {
     const v = state[k];
     if (v) search += d() + k + '=' + v;
   }
@@ -185,7 +187,7 @@ function search_from_state(req=false) {
   }
 
   if (!req)
-    for (const k of ['unc','click'])
+    for (const k of ['fitmc','unc','click'])
       if (k in state) search += d() + k;
 
   return search;
@@ -286,10 +288,10 @@ function fix_form_var_names(tr,d) {
 }
 
 function form_from_state() {
-  for (const x of ['unc','click'])
+  for (const x of ['fitmc','unc','click'])
     fields[x].checked = x in state;
 
-  for (const x of ['lumi'])
+  for (const x of ['lumi','wd','wm'])
     fields[x].value = state[x];
 
   clear(form_table);
@@ -337,8 +339,9 @@ function process_resp() {
   }
 
   console.log(state.resp);
+
   const {
-    vars, migration: mig, lumi, bkg, bkg_sys, sig, sig_sys
+    vars, lumi, bkg, bkg_sys, sig, sig_sys, m_yy, migration: mig
   } = state.resp;
 
   if (vars === undefined || vars.length === 0) {
@@ -348,18 +351,34 @@ function process_resp() {
   const nvars = vars.length;
   const nbins = sig.length;
 
+  const mig_frac = [...mig];
+  for (let r=0, k=0; r<nbins; ++r) {
+    let sum = 0;
+    for (let t=0; t<nbins; ++t, ++k)
+      sum += mig_frac[k];
+    for (let t=1; t<=nbins; ++t)
+      mig_frac[k-t] /= sum;
+  }
+
   for (let i=nvars; i--; ) {
     const v = vars[i];
     rows[0].prepend($(null,'td'));
-    let td = $(null,'td',{style:{'font-size':'small'}});
+    const td = $(null,'td',{style:{'font-size':'small'}});
     td.textContent = v[0];
+    rows[1].prepend(td);
+  }
+  { rows[0].prepend($(null,'td'));
+    const td = $(null,'td');
+    td.textContent = 'Bin';
     rows[1].prepend(td);
   }
 
   prod_loop((ii,j) => {
     const tr = $(main_table,'tr');
+    $(tr,'td').textContent = j+1;
+
     for (let i=0; i<nvars; ++i) {
-      $(tr,'td').textContent = '['
+      $(tr,'td',['left']).textContent = '['
         + numfmt2(vars[i][1][ii[i]  ]) + ','
         + numfmt2(vars[i][1][ii[i]+1]) + ')';
     }
@@ -387,7 +406,7 @@ function process_resp() {
     let finite = Number.isFinite(signif);
     $(tr,'td',{style:{
       'font-weight': 'bold',
-      color: !finite ? null
+      color: !finite      ? null
            : signif < 1   ? '#CC0000'
            : signif < 2   ? '#FF6600'
            : signif < 2.3 ? '#000099'
@@ -398,7 +417,7 @@ function process_resp() {
     finite = Number.isFinite(signif);
     $(tr,'td',{style:{
       'font-weight': 'bold',
-      color: !finite ? null
+      color: !finite      ? null
            : signif < 1   ? '#CC0000'
            : signif < 2   ? '#FF6600'
            : signif < 2.3 ? '#000099'
@@ -407,10 +426,10 @@ function process_resp() {
 
     $(tr,'td').textContent = (100*s/(s+b)).toFixed(2)+'%';
 
-    const purity = mig[j*nbins+j] / s;
+    const purity = mig_frac[j*nbins+j];
     finite = Number.isFinite(purity);
     $(tr,'td',{style:{
-      color: !finite ? null
+      color: !finite       ? null
            : purity < 0.4  ? '#CC0000'
            : purity < 0.5  ? '#FF6600'
            : purity < 0.75 ? '#000099'
@@ -419,6 +438,8 @@ function process_resp() {
   },...vars);
 
   fields.lumi.value = lumi[0];
+  fields.wd.value = m_yy.bin_width.data;
+  fields.wm.value = m_yy.bin_width.mc;
 
   $id('data_lumi').textContent =
     lumi.length < 2 ? '' : `(scaled from ${lumi[1]} ifb)`;
@@ -427,12 +448,12 @@ function process_resp() {
 
   $id('run_time').textContent = state.resp.time + ' ms';
 
-  draw_migration(state.resp);
+  draw_migration(state.resp,mig_frac);
 
   move_pane();
 }
 
-function draw_migration({migration:mig,vars,sig}) {
+function draw_migration({migration:mig,vars,sig},mig_frac) {
   const nbins = sig.length;
   const Len = 2**4 * 3**2 * 5, len = Len/nbins;
   let div = $id('mig');
@@ -509,13 +530,11 @@ function draw_migration({migration:mig,vars,sig}) {
     const g = $(svg,'g');
     prod_loop((rr,r) => { // reco
       prod_loop((tt,t) => { // truth
-        const m = mig[k]/sig[r];
-
+        const m = mig_frac[k];
         if (m > 0) $(g,'rect',{
           x: len*t, y: Len-len*(r+1), width: len, height: len,
-          fill: d3.interpolateGreens( (mig[k]/sig[r])**(1/Math.E) )
+          fill: d3.interpolateGreens( m**(1/Math.E) )
         });
-
         ++k;
       },...vars);
     },...vars);
@@ -560,11 +579,13 @@ function draw_migration({migration:mig,vars,sig}) {
         const table = $(info,'table');
         let tr = $(table,'tr');
         $(tr,'td');
+        $(tr,'td').textContent = 'Bin';
         for (let i=0; i<nvars; ++i) {
           $(tr,'td').textContent = vars[i][0];
         }
         tr = $(table,'tr');
         $(tr,'td').textContent = 'Truth';
+        $(tr,'td').textContent = t+1;
         for (let i=0; i<nvars; ++i) {
           $(tr,'td').textContent = '['
             + numfmt2(vars[i][1][tt[i]  ]) + ','
@@ -572,6 +593,7 @@ function draw_migration({migration:mig,vars,sig}) {
         }
         tr = $(table,'tr');
         $(tr,'td').textContent = 'Reco';
+        $(tr,'td').textContent = r+1;
         for (let i=0; i<nvars; ++i) {
           $(tr,'td').textContent = '['
             + numfmt2(vars[i][1][rr[i]  ]) + ','
@@ -580,7 +602,7 @@ function draw_migration({migration:mig,vars,sig}) {
 
         $(info,'p').textContent = `Monte Carlo events: ${round(mig[r*nbins+t],3)}`;
         $(info,'p').textContent = 'Reco %: ' + (
-          sig[r] !== 0 ? `${round(100*mig[r*nbins+t]/sig[r],3)}%` : '—'
+          sig[r] !== 0 ? `${round(100*mig_frac[r*nbins+t],3)}%` : '—'
         );
       }
     },
@@ -613,7 +635,7 @@ function draw_migration({migration:mig,vars,sig}) {
   }
 }
 
-function draw_myy_plot(bin_i) {
+function draw_myy_data_plot(bin_i) {
   const div = clear($id('fit_plot'));
 
   const resp = state.resp;
@@ -621,16 +643,15 @@ function draw_myy_plot(bin_i) {
   const plot = new Plot('#fit_plot',400,250,'white');
   const svg = plot.svg.node();
 
-  const {fiducial,bin_width,signal} = resp.m_yy;
+  const {fiducial,signal} = resp.m_yy;
+  const wd = resp.m_yy.bin_width.data;
 
   plot.axes(
     { range: fiducial, padding: [33,10], label: 'm_yy [GeV]' },
     { range: [0,d3.max(bin[0].concat(bin[1]))*1.05], padding: [45,5], nice: true }
   );
 
-  const hist_bin = x0 => (x,i) => [
-    x0+i*bin_width, x0+(i+1)*bin_width, x, Math.sqrt(x)
-  ];
+  const hist_bin = x0 => (x,i) => [ x0+i*wd, x0+(i+1)*wd, x, Math.sqrt(x) ];
 
   plot.hist(
     bin[0].map(
@@ -681,6 +702,7 @@ function draw_myy_plot(bin_i) {
   const  params = resp.fit[bin_i];
   const nparams = params.length;
 
+  $(info,'p',{style:{'font-weight':'bold'}}).textContent = `Bin ${bin_i+1}`;
   $(info,'p').textContent = 'x = m_yy - 125';
   { let eq = 'y = exp( ';
     for (let i=0; i<nparams; ++i) {
@@ -782,7 +804,7 @@ function main() {
   $(window,{ events: {
     keydown: e => {
       switch (e.which || e.keyCode) {
-        case 27:
+        case 27: // Esc
           hide_contexts();
           break;
       }
@@ -800,6 +822,8 @@ function main() {
   $$(form,'[name]', x => { fields[x.name] = x; });
 
   submit_on_enter(fields.lumi);
+  submit_on_enter(fields.wd);
+  submit_on_enter(fields.wm);
 
   form_table = $id('form_table');
   main_table = $($id('main_table'),'table');
@@ -897,11 +921,17 @@ function main() {
       url_from_state();
     });
   }
+  for (const name of ['fitmc']) {
+    fields[name].addEventListener('change', e => {
+      if (e.target.checked) state[name] = null;
+      else delete state[name];
+    });
+  }
 
   main_table.addEventListener('click', e => {
     if (fields.click.checked && e.target.nodeName=='TD') {
       const i = e.target.parentElement.rowIndex;
-      if (i >= 2) draw_myy_plot(i-2);
+      if (i >= 2) draw_myy_data_plot(i-2);
     }
   });
 
@@ -936,7 +966,9 @@ function main() {
           state.resp = resp;
           url_from_state( // push if true, replace if false
             ( ('resp' in prev_state) &&
-              (!!prev_state.lumi && state.lumi !== prev_state.lumi)
+              (!!prev_state.lumi && state.lumi !== prev_state.lumi) &&
+              (!!prev_state.wd && state.wd !== prev_state.wd) &&
+              (!!prev_state.wm && state.wm !== prev_state.wm)
             ) || (
               JSON.stringify(     state.vars) !==
               JSON.stringify(prev_state.vars)
