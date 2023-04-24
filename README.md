@@ -25,19 +25,19 @@ For example:
 ```
 .
 ├── data
-│   └── 2022_13.7TeV_37.8ifb
-│       ├── catXS_VBF_data.dat
-│       ├── catXS_VBF_mc.dat
-│       ├── m_yy_data.dat
-│       ├── m_yy_mc.dat
-│       ├── N_j_30_data.dat
-│       ├── N_j_30_mc.dat
-│       ├── pT_j1_30_data.dat
-│       ├── pT_j1_30_mc.dat
-│       ├── pT_yy_data.dat
-│       ├── pT_yy_mc.dat
-│       ├── mxaods.json
-│       └── vars.json
+│   └── 2022_13.7TeV_37.8ifb
+│       ├── catXS_VBF_data.dat
+│       ├── catXS_VBF_mc.dat
+│       ├── m_yy_data.dat
+│       ├── m_yy_mc.dat
+│       ├── N_j_30_data.dat
+│       ├── N_j_30_mc.dat
+│       ├── pT_j1_30_data.dat
+│       ├── pT_j1_30_mc.dat
+│       ├── pT_yy_data.dat
+│       ├── pT_yy_mc.dat
+│       ├── mxaods.json
+│       └── vars.json
 ```
 
 Besides the data files, the data directory needs to contain `vars.json` and

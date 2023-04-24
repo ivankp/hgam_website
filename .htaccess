@@ -1,0 +1,4 @@
+Options -Indexes
+
+RedirectMatch 404 ^\.
+RedirectMatch 404 .*\.git/
