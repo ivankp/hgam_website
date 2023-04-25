@@ -1,0 +1,41 @@
+#main { margin: 0 4px; }
+#top p {
+  margin: 0 0 10px 0;
+  font-size: small;
+  color: #0033A0;
+  font-weight: bold;
+}
+
+form fieldset {
+  border: solid 2px #bbb;
+}
+form fieldset > legend {
+  padding: 0 4px;
+  font-size: small;
+}
+fieldset.vars {
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 10px;
+  margin-right: 12px;
+}
+fieldset.cuts {
+  display: inline-block;
+  vertical-align: top;
+  margin-top: 10px;
+}
+
+form table { border-collapse: collapse; }
+form table td { vertical-align: baseline; }
+form table button { font-family: monospace; }
+
+#run_time {
+  margin-left: 4px;
+  font-size: small;
+  color: #999;
+  white-space: nowrap;
+}
+#loading {
+  vertical-align: middle;
+  margin-left: 6px;
+}
