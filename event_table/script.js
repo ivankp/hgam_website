@@ -208,7 +208,9 @@ function main() {
             state.has_float = has_float;
           }
 
-          process_resp();
+          $id('run_time').textContent = state.resp.time + ' ms';
+          make_table_head();
+          make_table();
         }
         enable();
       })
@@ -223,32 +225,46 @@ function main() {
     }
   });
 
-  const process_resp = () => {
-    $id('run_time').textContent = state.resp.time + ' ms';
+  const table = $id('event_table');
 
-    const table = clear($id('event_table'));
-    let tr = $(table,'tr');
-    let td = $(tr,'td');
-    $(td,'span',['asc'],{events:{
-      click: e => {
-        console.log(e);
-      }
-    }}).textContent = 'Event #';
-    for (let i=0; i<state.vars.length; ++i) {
-      td = $(tr,'td');
-      $(td,'span',{events:{
-        click: e => {
-          console.log(e);
-        }
-      }}).textContent = state.vars[i];
+  function sort_col(e) {
+    const tds = this.parentElement.children;
+    const i = Array.prototype.indexOf.call(tds, this);
+    const cl = this.firstChild.classList;
+    const is_asc = cl.contains('asc');
+    const events = state.resp.events;
+    for (const td of tds)
+      td.firstChild.classList.remove('asc','desc');
+    if (is_asc) {
+      cl.add('desc');
+      events.sort((a,b) => b[i] - a[i]);
+    } else {
+      cl.add('asc');
+      events.sort((a,b) => a[i] - b[i]);
     }
+    while (table.children.length > 1) table.lastChild.remove();
+    make_table();
+  }
+
+  const make_table_head = () => {
+    clear(table);
+    let tr = $(table,'tr');
+    let td = $(tr,'td',{events:{click:sort_col}});
+    $(td,'span',['asc']).textContent = 'Event #';
+    for (let i=0; i<state.vars.length; ++i) {
+      td = $(tr,'td',{events:{click:sort_col}});
+      $(td,'span').textContent = state.vars[i];
+    }
+  };
+
+  const make_table = () => {
     const events = state.resp.events;
     $id('event_count').textContent = `${events.length} events`;
     if (events.length) {
       const n = events[0].length;
       const has_float = state.has_float;
       for (const e of events) {
-        tr = $(table,'tr');
+        const tr = $(table,'tr');
         for (let i=0; i<n; ++i) {
           const v = e[i];
           $(tr,'td').textContent = v === null
