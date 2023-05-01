@@ -192,6 +192,22 @@ function main() {
             JSON.stringify(     state.vars) !==
             JSON.stringify(prev_state.vars)
           );
+
+          const events = resp.events;
+          if (events.length) {
+            const n = events[0].length;
+            const is_float = events[0].map(x => false);
+            for (const e of events) {
+              let all_float = true;
+              for (let i=0; i<n; ++i) {
+                const x = is_float[i] ||= ( e[i] % 1 !== 0 );
+                all_float &&= x;
+              }
+              if (all_float) break;
+            }
+            state.is_float = is_float;
+          }
+
           process_resp();
         }
         enable();
@@ -212,22 +228,25 @@ function main() {
 
     const table = clear($id('event_table'));
     let tr = $(table,'tr');
-    $(tr,'td').textContent = 'Event #';
-    for (const v of state.vars) {
-      $(tr,'td').textContent = v;
+    let td = $(tr,'td');
+    $(td,'span',['asc'],{events:{
+      click: e => {
+        console.log(e);
+      }
+    }}).textContent = 'Event #';
+    for (let i=0; i<state.vars.length; ++i) {
+      td = $(tr,'td');
+      $(td,'span',{events:{
+        click: e => {
+          console.log(e);
+        }
+      }}).textContent = state.vars[i];
     }
     const events = state.resp.events;
+    $id('event_count').textContent = `${events.length} events`;
     if (events.length) {
       const n = events[0].length;
-      const is_float = events[0].map(x => false);
-      for (const e of events) {
-        let all_float = true;
-        for (let i=0; i<n; ++i) {
-          const x = is_float[i] ||= ( e[i] % 1 !== 0 );
-          all_float &&= x;
-        }
-        if (all_float) break;
-      }
+      const is_float = state.is_float;
       for (const e of events) {
         tr = $(table,'tr');
         for (let i=0; i<n; ++i) {

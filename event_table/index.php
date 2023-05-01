@@ -71,6 +71,7 @@ include '../nav.php';
 </div>
 </form>
 
+<div id="event_count"></div>
 <table id="event_table"></table>
 
 </div>

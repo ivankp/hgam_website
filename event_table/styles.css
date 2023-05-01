@@ -29,6 +29,10 @@ form table { border-collapse: collapse; }
 form table td { vertical-align: baseline; }
 form table button { font-family: monospace; }
 
+form {
+  margin-bottom: 8px;
+}
+
 #run_time {
   margin-left: 4px;
   font-size: small;
@@ -40,11 +44,15 @@ form table button { font-family: monospace; }
   margin-left: 6px;
 }
 
+#event_count {
+  font-size: small;
+  font-family: monospace;
+}
 #event_table {
   border-collapse: collapse;
   border-top: 1px solid #000;
   border-bottom: 1px solid #000;
-  margin: 5px 0;
+  margin: 5px 0 5px 0;
   font-size: small;
   font-family: monospace;
 }
@@ -53,4 +61,11 @@ form table button { font-family: monospace; }
 #event_table td {
   text-align: right;
   padding: 0.125em 0.5em;
+}
+
+#event_table .asc::before {
+  content: '⏷ ';
+}
+#event_table .desc::before {
+  content: '⏶ ';
 }
