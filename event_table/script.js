@@ -185,6 +185,8 @@ function main() {
         if ('error' in resp) {
           alert(resp.error);
         } else {
+          state = Object.assign({},resp.selection);
+          state.ds = data.findIndex(x => x[0] === state.ds);
           state.resp = resp;
           url_from_state( // push if true, replace if false
             JSON.stringify(     state.vars) !==
@@ -206,9 +208,34 @@ function main() {
   });
 
   const process_resp = () => {
-    console.log(state.resp);
-
     $id('run_time').textContent = state.resp.time + ' ms';
+
+    const table = clear($id('event_table'));
+    let tr = $(table,'tr');
+    $(tr,'td').textContent = 'Event #';
+    for (const v of state.vars) {
+      $(tr,'td').textContent = v;
+    }
+    const events = state.resp.events;
+    if (events.length) {
+      const n = events[0].length;
+      const is_float = events[0].map(x => false);
+      for (const e of events) {
+        let all_float = true;
+        for (let i=0; i<n; ++i) {
+          const x = is_float[i] ||= ( e[i] % 1 !== 0 );
+          all_float &&= x;
+        }
+        if (all_float) break;
+      }
+      for (const e of events) {
+        tr = $(table,'tr');
+        for (let i=0; i<n; ++i) {
+          const v = e[i];
+          $(tr,'td').textContent = is_float[i] ? v.toFixed(3) : v;
+        }
+      }
+    }
   };
 
   state_from_url();

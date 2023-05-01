@@ -39,3 +39,18 @@ form table button { font-family: monospace; }
   vertical-align: middle;
   margin-left: 6px;
 }
+
+#event_table {
+  border-collapse: collapse;
+  border-top: 1px solid #000;
+  border-bottom: 1px solid #000;
+  margin: 5px 0;
+  font-size: small;
+  font-family: monospace;
+}
+#event_table > tr:nth-child(1) { border-bottom: 1px solid #000; }
+#event_table > tr:nth-child(n+2):hover { background-color: #eee; }
+#event_table td {
+  text-align: right;
+  padding: 0.125em 0.5em;
+}
