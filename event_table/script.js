@@ -196,16 +196,16 @@ function main() {
           const events = resp.events;
           if (events.length) {
             const n = events[0].length;
-            const is_float = events[0].map(x => false);
+            const has_float = events[0].map(x => false);
             for (const e of events) {
               let all_float = true;
               for (let i=0; i<n; ++i) {
-                const x = is_float[i] ||= ( e[i] % 1 !== 0 );
+                const x = has_float[i] ||= ( e[i] % 1 !== 0 );
                 all_float &&= x;
               }
               if (all_float) break;
             }
-            state.is_float = is_float;
+            state.has_float = has_float;
           }
 
           process_resp();
@@ -246,12 +246,14 @@ function main() {
     $id('event_count').textContent = `${events.length} events`;
     if (events.length) {
       const n = events[0].length;
-      const is_float = state.is_float;
+      const has_float = state.has_float;
       for (const e of events) {
         tr = $(table,'tr');
         for (let i=0; i<n; ++i) {
           const v = e[i];
-          $(tr,'td').textContent = is_float[i] ? v.toFixed(3) : v;
+          $(tr,'td').textContent = v === null
+            ? '—'
+            : has_float[i] ? v.toFixed(3) : v;
         }
       }
     }
