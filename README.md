@@ -9,13 +9,13 @@ The page relies on two things.
 The `binner` program contained in this repository should work with any Linux
 distribution. However, if for some reason it doesn't work (e.g. the kernel may
 be sufficiently incompatible), follow the instructions in the
-[`hgam_website_binning`](https://github.com/ivankp/hgam_website_binning)
+[`hgam_website_backend`](https://github.com/ivankp/hgam_website_backend)
 repository, which contains the source code for the `binner` program,
 to compile a compatible version.
 
 The data files can be generated from `MxAODs` or `uMxAODs` by using the
 `convert_mxaods` program in the
-[`hgam_website_binning`](https://github.com/ivankp/hgam_website_binning)
+[`hgam_website_backend`](https://github.com/ivankp/hgam_website_backend)
 repository.
 Follow the respective instructions there to make them.
 
