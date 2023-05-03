@@ -62,6 +62,9 @@ form {
   text-align: right;
   padding: 0.025em 0.5em;
 }
+#event_table > tr:nth-child(1) > td {
+  padding: 0.125em 0.5em;
+}
 #event_table > tr:nth-child(2) > td {
   padding-top: 0.125em;
 }
@@ -69,11 +72,10 @@ form {
   padding-bottom: 0.125em;
 }
 
-#event_table .desc::before {
-  content: '⏶';
-  margin-right: 0.5em;
-}
-#event_table .asc::before {
-  content: '⏷';
+#event_table svg.asc,
+#event_table svg.desc {
+  display: inline-block;
+  width: 1ch;
+  vertical-align: middle;
   margin-right: 0.5em;
 }

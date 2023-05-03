@@ -2,7 +2,9 @@ const $ = (p,...args) => {
   if (p===null) {
     const x = args.shift();
     if (x.constructor !== String) throw new Error('expected tag name');
-    p = document.createElement(x);
+    p = x==='svg'
+      ? document.createElementNS('http://www.w3.org/2000/svg',x)
+      : document.createElement(x);
   } else if (p.constructor === String) {
     p = (
       args[0] instanceof Element ? args.shift() : document.body

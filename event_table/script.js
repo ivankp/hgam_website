@@ -230,16 +230,24 @@ function main() {
   function sort_col(e) {
     const tds = this.parentElement.children;
     const i = Array.prototype.indexOf.call(tds, this);
-    const cl = this.firstChild.classList;
-    const is_asc = cl.contains('asc');
+    const is_asc = this.firstChild.classList.contains('asc');
     const events = state.resp.events;
-    for (const td of tds)
-      td.firstChild.classList.remove('asc','desc');
+    for (const td of tds) {
+      const child = td.firstChild;
+      if (['asc','desc'].some(x => child.classList.contains(x)))
+        child.remove();
+    }
+    console.log(is_asc);
+    console.log(this);
     if (is_asc) {
-      cl.add('desc');
+      const svg = $(null,'svg',{viewBox:'0 0 2 1'},['desc']);
+      $(svg,'path',{ d: 'M0 1H2L1 0Z', stroke: 'none', fill: 'black' });
+      this.prepend(svg);
       events.sort((a,b) => b[i] - a[i]);
     } else {
-      cl.add('asc');
+      const svg = $(null,'svg',{viewBox:'0 0 2 1'},['asc']);
+      $(svg,'path',{ d: 'M0 0H2L1 1Z', stroke: 'none', fill: 'black' })
+      this.prepend(svg);
       events.sort((a,b) => a[i] - b[i]);
     }
     while (table.children.length > 1) table.lastChild.remove();
@@ -250,7 +258,10 @@ function main() {
     clear(table);
     let tr = $(table,'tr');
     let td = $(tr,'td',{events:{click:sort_col}});
-    $(td,'span',['asc']).textContent = 'Event #';
+    $(td,'svg',{viewBox:'0 0 2 1'},['asc'],'path',{
+      d: 'M0 0H2L1 1Z', stroke: 'none', fill: 'black'
+    });
+    $(td,'span').textContent = 'Event #';
     for (let i=0; i<state.vars.length; ++i) {
       td = $(tr,'td',{events:{click:sort_col}});
       $(td,'span').textContent = state.vars[i];
