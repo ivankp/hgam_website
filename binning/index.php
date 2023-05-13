@@ -56,13 +56,15 @@ include '../nav.php';
 
 <form>
   <div>
+    <label>Dataset:<select id="dataset" name="dataset"></select></label>
+  </div><div>
     <span class="small">Bin width:</span>
     <label>Data:<input type="text" name="wd" size="6">GeV</label>,
     <label>MC:<input type="text" name="wm" size="6">GeV</label>
   </div><div>
-    <label><input name="fitmc" type="checkbox">
-      fit signal distribution</label>
-  </div><div>
+  <!--   <label><input name="fitmc" type="checkbox"> -->
+  <!--     fit signal distribution</label> -->
+  <!-- </div><div> -->
     <label>Luminosity:<input type="text" name="lumi" size="6">ifb</label>
     <span id="data_lumi"></span>
   </div><div>
@@ -74,7 +76,7 @@ include '../nav.php';
     </tr></table>
   </div><div>
     <label><input name="click" type="checkbox">
-      click row to show backround fit</label>
+      click row to show mγγ histograms</label>
     <label><input name="unc" type="checkbox">
       show uncertainties</label>
   </div>

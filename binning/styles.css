@@ -34,6 +34,7 @@ form label > * {
   font-size: small;
 }
 
+select[name="dataset"],
 input[name="lumi"],
 input[name="wd"],
 input[name="wm"] {
@@ -95,7 +96,6 @@ span.show {
 }
 #main_table > table > tr:nth-child(2) { border-bottom: 1px solid #000; }
 #main_table > table > tr:nth-child(-n+2) > td { text-align: center; }
-#main_table > table tr.bin:hover { background-color: #eee; }
 #main_table td {
   padding: 1px 6px;
   white-space: nowrap;
@@ -107,7 +107,7 @@ span.show {
   user-select: none;
   cursor: pointer;
 }
-#main_table > table.click tr:nth-child(n+3):hover {
+#main_table > table tr:nth-child(n+3):hover {
   background-color: #eee;
 }
 

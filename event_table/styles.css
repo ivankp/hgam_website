@@ -29,8 +29,23 @@ form table { border-collapse: collapse; }
 form table td { vertical-align: baseline; }
 form table button { font-family: monospace; }
 
+form > div:first-child table td { padding-top: 2px; }
+form > div:first-child table td:first-child { padding-left: 0; }
+
 form {
   margin-bottom: 8px;
+}
+form label {
+  user-select: none;
+  font-size: small;
+}
+form label > * {
+  vertical-align: middle;
+}
+
+select[name="dataset"] {
+  text-align: right;
+  margin: 0 5px 0 5px;
 }
 
 #run_time {

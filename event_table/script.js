@@ -162,7 +162,6 @@ function main() {
     try {
       const prev_state = Object.assign({},state);
       state_from_form();
-      // console.log(JSON.stringify(state));
 
       const form_elements = form.querySelectorAll('input,select,button');
       for (const x of form_elements) x.disabled = true;
@@ -237,8 +236,6 @@ function main() {
       if (['asc','desc'].some(x => child.classList.contains(x)))
         child.remove();
     }
-    console.log(is_asc);
-    console.log(this);
     if (is_asc) {
       const svg = $(null,'svg',{viewBox:'0 0 2 1'},['desc']);
       $(svg,'path',{ d: 'M0 1H2L1 0Z', stroke: 'none', fill: 'black' });

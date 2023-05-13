@@ -56,7 +56,7 @@ include '../nav.php';
 <form>
 <div>
   <table><tr>
-    <td><select id="dataset" name="dataset"></select></td>
+    <td><label>Dataset:<select id="dataset" name="dataset"></select></label></td>
     <td><input type="submit" value="Show"></button></td>
     <td><img id="loading" src="../img/loading.gif" alt="loading" style="display:none;"></td>
     <td><span id="run_time"></span></td>

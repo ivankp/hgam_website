@@ -2,7 +2,7 @@ let state = { }, fields = { };
 let main_table, form_table;
 let main_table_ncols;
 let vars_names;
-let data_dict, binning;
+let binning;
 
 const dummy_a = document.createElement('a');
 
@@ -102,9 +102,12 @@ function state_from_url() {
     for (const x of q.split('&')) {
       let i = x.indexOf('=');
       const [k,v] = i === -1 ? [ x, '' ] : [ x.slice(0,i), x.slice(i+1) ];
-      if (['lumi','data','wd','wm'].includes(k)) {
+      if (k === 'ds') {
+        const i = data.findIndex(x => x[0] === v);
+        if (i!==-1) state[k] = i;
+      } else if (['lumi','wd','wm'].includes(k)) {
         state[k] = v;
-      } else if (['fitmc','unc','click'].includes(k)) {
+      } else if ([/*'fitmc',*/'unc','click'].includes(k)) {
         state[k] = null;
       } else if (k.match(/x[1-9]/)) {
         if (v==null || v.length==0) continue;
@@ -123,9 +126,8 @@ function state_from_url() {
     state[name] = Number.isNaN(x) ? '' : x;
   }
 
-  if (!(state.data in data_dict))
-    state.data = data[0][0];
-  binning = data_dict[state.data];
+  if (!('ds' in state)) state.ds = 0;
+  binning = data[state.ds][1];
 
   // collect selected variables or use default
   xi = Object.entries(xi);
@@ -172,23 +174,22 @@ function state_from_form() {
 }
 
 function search_from_state(req=false) {
-  let search = '';
-  const d = () => search.length===0 ? '?' : '&';
+  let search = '?ds=' + data[state.ds][0];
 
-  for (const k of ['data','lumi','wd','wm']) {
+  for (const k of ['lumi','wd','wm']) {
     const v = state[k];
-    if (v) search += d() + k + '=' + v;
+    if (v) search += '&' + k + '=' + v;
   }
 
   for (let i=0; i<state.vars.length; ++i) {
     const [name,edges] = state.vars[i];
-    search += d() + 'x' + (i+1) + '=' + name;
+    search += '&x' + (i+1) + '=' + name;
     for (const e of edges) search += '+' + e;
   }
 
   if (!req)
-    for (const k of ['fitmc','unc','click'])
-      if (k in state) search += d() + k;
+    for (const k of [/*'fitmc',*/'unc','click'])
+      if (k in state) search += '&' + k;
 
   return search;
 }
@@ -288,11 +289,13 @@ function fix_form_var_names(tr,d) {
 }
 
 function form_from_state() {
-  for (const x of ['fitmc','unc','click'])
+  for (const x of [/*'fitmc',*/'unc','click'])
     fields[x].checked = x in state;
 
   for (const x of ['lumi','wd','wm'])
     fields[x].value = state[x];
+
+  $id('dataset').selectedIndex = state.ds;
 
   clear(form_table);
   for (let i=0; i<state.vars.length; ++i) {
@@ -872,14 +875,20 @@ function main() {
   const form = $('form');
   $$(form,'[name]', x => { fields[x.name] = x; });
 
+  { const form_dataset = $id('dataset');
+    for (const [name] of data)
+      $(form_dataset,'option').textContent = name;
+    form_dataset.addEventListener('change', e => {
+      state.ds = form_dataset.selectedIndex;
+    });
+  }
+
   submit_on_enter(fields.lumi);
   submit_on_enter(fields.wd);
   submit_on_enter(fields.wm);
 
   form_table = $id('form_table');
   main_table = $($id('main_table'),'table');
-
-  data_dict = Object.fromEntries(data);
 
   // get state from url
   state_from_url();
@@ -972,12 +981,14 @@ function main() {
       url_from_state();
     });
   }
+  /*
   for (const name of ['fitmc']) {
     fields[name].addEventListener('change', e => {
       if (e.target.checked) state[name] = null;
       else delete state[name];
     });
   }
+  */
 
   main_table.addEventListener('click', e => {
     if (fields.click.checked && e.target.nodeName=='TD') {
@@ -1016,6 +1027,7 @@ function main() {
       .then(resp => resp.json())
       .then(resp => {
         if ('error' in resp) {
+          console.log(resp);
           alert(resp.error);
         } else {
           state.resp = resp;
