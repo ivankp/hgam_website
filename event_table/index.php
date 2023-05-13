@@ -50,7 +50,7 @@ include '../nav.php';
 <div id="main">
 
 <div id="top">
-<p>H&rarr;&gamma;&gamma; event table</p>
+<h1>H&rarr;&gamma;&gamma; event table</h1>
 </div>
 
 <form>

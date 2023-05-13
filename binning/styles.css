@@ -11,13 +11,12 @@
   margin-bottom: 5px;
 }
 
-#top p {
+#top h1 {
   margin: 0 0 10px 0;
   font-size: small;
   color: #0033A0;
   font-weight: bold;
 }
-#top img { margin: 0 4px 0 30px; }
 
 span.bar {
   text-decoration: overline;

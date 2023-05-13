@@ -49,7 +49,7 @@ include '../nav.php';
 <div id="main">
 
 <div id="top">
-<p>H&rarr;&gamma;&gamma; binning estimator</p>
+<h1>H&rarr;&gamma;&gamma; binning estimator</h1>
 </div>
 <div id="mid">
 <div id="left">
