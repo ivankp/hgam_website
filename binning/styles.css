@@ -1,9 +1,15 @@
-#main { margin: 0 4px; }
+#page { margin: 0 4px; }
 
-#left, #right { float: left; }
-#pane { display: inline-block; }
-#right > #pane { padding-left: 20px; }
-#mid-left > #pane { padding: 10px 0; }
+#main > div {
+  display: inline-block;
+  vertical-align: top;
+}
+#main > div:first-child {
+  float: left;
+}
+#main > div:nth-child(n+2) {
+  margin: 0 0 1em 1em;
+}
 
 #note { font-size: small; }
 #note p {
@@ -11,11 +17,17 @@
   margin-bottom: 5px;
 }
 
-#top h1 {
+h1 {
   margin: 0 0 10px 0;
-  font-size: small;
+  font-size: 0.9em;
   color: #0033A0;
   font-weight: bold;
+}
+
+#main h2 {
+  font-weight: normal;
+  font-size: 1em;
+  margin: 0 0 1em 0;
 }
 
 span.bar {
@@ -65,7 +77,6 @@ form > div {
   margin: 3px 0;
 }
 
-#mxaods > p { padding: 0; margin: 0; }
 #mxaods ul {
   padding-left: 2ch;
   font-family: monospace;
@@ -77,6 +88,7 @@ form > div {
   list-style-type: none;
 }
 #mxaods .dir { color: #729fcf; font-weight: bold; }
+#mxaods > :nth-child(2) { font-size: 0.85em; }
 span.show {
   cursor: pointer;
   color: blue;
@@ -132,18 +144,6 @@ span.show {
   background: #E8E8E9;
 }
 
-#mig .info {
-  font-size: small;
-  font-family: monospace;
-}
-#mig .info > p {
-  margin: 2px 3px;
-}
-
-#data_plot,
-#mc_plot {
-  margin-top: 18px;
-}
 #data_plot > .info,
 #mc_plot > .info {
   font-size: small;
@@ -152,4 +152,12 @@ span.show {
 #data_plot > .info > p,
 #mc_plot > .info > p {
   margin: 0;
+}
+
+#mig .info {
+  font-size: small;
+  font-family: monospace;
+}
+#mig .info > p {
+  margin: 2px 3px;
 }

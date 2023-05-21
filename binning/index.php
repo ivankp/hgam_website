@@ -46,19 +46,18 @@ const mxaods = <?php include 'data/'.$data_dirs[0].'/mxaods.json';?>;
 include '../nav.php';
 ?>
 
+<div id="page">
+
+<h1>H&rarr;&gamma;&gamma; binning estimator</h1>
+
 <div id="main">
 
-<div id="top">
-<h1>H&rarr;&gamma;&gamma; binning estimator</h1>
-</div>
-<div id="mid">
-<div id="left">
-
+<div>
 <form>
   <div>
     <label>Dataset:<select id="dataset" name="dataset"></select></label>
   </div><div>
-    <span class="small">Bin width:</span>
+    <span class="small">m<sub>&gamma;&gamma;</sub> bin width:</span>
     <label>Data:<input type="text" name="wd" size="6">GeV</label>,
     <label>MC:<input type="text" name="wm" size="6">GeV</label>
   </div><div>
@@ -83,10 +82,20 @@ include '../nav.php';
 </form>
 
 <div id="main_table"></div>
+</div>
 
-<div id="mid-left"></div>
+<div id="data_plot" style="display:none;"></div>
+<div id="mc_plot" style="display:none;"></div>
+<div id="mig">
+  <h2>Reco migration <span class="show">[hide]</span></h2>
+</div>
+<div id="mxaods">
+  <h2>MxAOD files <span class="show">[show]</span></h2>
+</div>
 
-<div id="note">
+</div>
+
+<div id="note" style="order: 1;">
 <p>sig - number of signal events, taken from Monte Carlo.</p>
 <p>bkg - number of background events in the signal region, estimated from data
 sidebands.</p>
@@ -108,18 +117,6 @@ See the
 >"Discovery significance ..."</a> note by Glen Cowan.
 </div>
 
-</div>
-<div id="right">
-
-<div id="pane">
-  <div id="mxaods"><p>MxAOD files <span class="show">[show]</span></p></div>
-  <div id="mig"><p>Reco migration <span class="show">[hide]</span></p></div>
-  <div id="data_plot"></div>
-  <div id="mc_plot"></div>
-</div>
-
-</div>
-</div>
 </div>
 
 <?php

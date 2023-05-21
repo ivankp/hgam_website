@@ -523,7 +523,7 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
     }
   }
 
-  $(div,{ style: { 'min-width': `${width/2.5}px` } });
+  $(div,{ style: { width: '400px' } });
   $(svg,{
     viewBox: `${-x_margin} 0 ${width} ${Len+y_margin}`,
     style: { 'font-family': 'Helvetica, Arial, sans-serif' }
@@ -639,7 +639,7 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
 }
 
 function draw_myy_mc_plot(bin_i) {
-  const div = clear($id('mc_plot'));
+  const div = $(clear($id('mc_plot')),{style:{display:null}});
 
   const resp = state.resp;
   const bin = resp.hist_mc[bin_i];
@@ -691,7 +691,7 @@ function draw_myy_mc_plot(bin_i) {
 }
 
 function draw_myy_data_plot(bin_i) {
-  const div = clear($id('data_plot'));
+  const div = $(clear($id('data_plot')),{style:{display:null}});
 
   const resp = state.resp;
   const bin = resp.hist[bin_i];
@@ -810,20 +810,20 @@ function draw_myy_data_plot(bin_i) {
   }
 }
 
-function move_pane() {
-  const left = $id('left');
-  const pane = $id('pane');
-
-  const mid_width = $id('mid').getBoundingClientRect().width;
-  const pane_width = pane.getBoundingClientRect().width;
-  const left_width = left.getBoundingClientRect().width;
-
-  const to = $id(
-    left_width + pane_width <= mid_width
-    ? 'right' : 'mid-left'
-  );
-  const from = pane.parentElement;
-  if (to !== from) to.appendChild(pane);
+function move_pane() { // TODO
+  // const left = $id('left');
+  // const pane = $id('pane');
+  //
+  // const mid_width = $id('mid').getBoundingClientRect().width;
+  // const pane_width = pane.getBoundingClientRect().width;
+  // const left_width = left.getBoundingClientRect().width;
+  //
+  // const to = $id(
+  //   left_width + pane_width <= mid_width
+  //   ? 'right' : 'mid-left'
+  // );
+  // const from = pane.parentElement;
+  // if (to !== from) to.appendChild(pane);
 }
 
 function save_svg(svg,prefix) {
