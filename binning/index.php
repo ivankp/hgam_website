@@ -75,7 +75,7 @@ include '../nav.php';
     </tr></table>
   </div><div>
     <label><input name="click" type="checkbox">
-      click row to show mγγ histograms</label>
+      click row to show m<sub>&gamma;&gamma;</sub> histograms</label>
     <label><input name="unc" type="checkbox">
       show uncertainties</label>
   </div>

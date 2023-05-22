@@ -78,10 +78,10 @@ form > div {
 }
 
 #mxaods ul {
-  padding-left: 2ch;
+  padding: 0 0 0 2ch;
   font-family: monospace;
 }
-#mxaods > ul { padding: 0; margin: 8px 0; }
+#mxaods > ul { padding: 0; margin: 0; }
 #mxaods li {
   padding-left: 0;
   margin-left: 0;

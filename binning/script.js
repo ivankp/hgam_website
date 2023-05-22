@@ -83,7 +83,6 @@ function toggle_unc_cols() {
         tds[i+nvars].style.display = display;
   }
   $id('note').style.maxWidth = main_table.getBoundingClientRect().width+'px';
-  move_pane();
 }
 
 function toggle_row_click(t) {
@@ -92,6 +91,19 @@ function toggle_row_click(t) {
 
 const hide_contexts = () => {
   $$('.context', x => { x.style.display = 'none'; });
+};
+const context_menu = (element,id) => {
+  let menu = $id(id);
+  if (menu) menu.remove();
+  menu = $(document.body,'div',{ id, style: {display:'none'} },['context']);
+  element.addEventListener('contextmenu', e => {
+    e.preventDefault();
+    hide_contexts();
+    $(menu,{ style: {
+      top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
+    }});
+  });
+  return menu;
 };
 
 function state_from_url() {
@@ -452,8 +464,6 @@ function process_resp() {
   $id('run_time').textContent = state.resp.time + ' ms';
 
   draw_migration(state.resp,mig_frac);
-
-  move_pane();
 }
 
 function draw_migration({migration:mig,vars,sig},mig_frac) {
@@ -615,27 +625,12 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
   if (hide) svg.style.display = 'none';
 
   // context menu
-  { let menu = $id('mig_context');
-    if (menu) menu.remove();
-    menu = $(document.body,'div',{
-      id: 'mig_context',
-      style: { 'display': 'none' }
-    },['context']);
-    $(menu,'div',{ events: {
-      click: e => {
-        e.preventDefault();
-        save_svg(svg,'migration');
-      }
-    }}).textContent = 'Save figure';
-
-    svg.addEventListener('contextmenu', e => {
+  $(context_menu(svg,'mig_context'),'div',{ events: {
+    click: e => {
       e.preventDefault();
-      hide_contexts();
-      $(menu,{ style: {
-        top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
-      }});
-    });
-  }
+      save_svg(svg,'migration');
+    }
+  }}).textContent = 'Save figure';
 }
 
 function draw_myy_mc_plot(bin_i) {
@@ -667,27 +662,12 @@ function draw_myy_mc_plot(bin_i) {
   });
 
   // context menu
-  { let menu = $id('mc_plot_context');
-    if (menu) menu.remove();
-    menu = $(document.body,'div',{
-      id: 'mc_plot_context',
-      style: { 'display': 'none' }
-    },['context']);
-    $(menu,'div',{ events: {
-      click: e => {
-        e.preventDefault();
-        save_svg(svg,`myy_fit_bin${bin_i+1}`);
-      }
-    }}).textContent = 'Save figure';
-
-    svg.addEventListener('contextmenu', e => {
+  $(context_menu(svg,'mc_plot_context'),'div',{ events: {
+    click: e => {
       e.preventDefault();
-      hide_contexts();
-      $(menu,{ style: {
-        top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
-      }});
-    });
-  }
+      save_svg(svg,`myy_fit_bin${bin_i+1}`);
+    }
+  }}).textContent = 'Save figure';
 }
 
 function draw_myy_data_plot(bin_i) {
@@ -784,46 +764,13 @@ function draw_myy_data_plot(bin_i) {
 
   $(info,'p').innerHTML = `χ<sup>2</sup> = ${resp.chi2[bin_i]}`;
 
-  move_pane();
-
   // context menu
-  { let menu = $id('data_plot_context');
-    if (menu) menu.remove();
-    menu = $(document.body,'div',{
-      id: 'data_plot_context',
-      style: { 'display': 'none' }
-    },['context']);
-    $(menu,'div',{ events: {
-      click: e => {
-        e.preventDefault();
-        save_svg(svg,`myy_fit_bin${bin_i+1}`);
-      }
-    }}).textContent = 'Save figure';
-
-    svg.addEventListener('contextmenu', e => {
+  $(context_menu(svg,'data_plot_context'),'div',{ events: {
+    click: e => {
       e.preventDefault();
-      hide_contexts();
-      $(menu,{ style: {
-        top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
-      }});
-    });
-  }
-}
-
-function move_pane() { // TODO
-  // const left = $id('left');
-  // const pane = $id('pane');
-  //
-  // const mid_width = $id('mid').getBoundingClientRect().width;
-  // const pane_width = pane.getBoundingClientRect().width;
-  // const left_width = left.getBoundingClientRect().width;
-  //
-  // const to = $id(
-  //   left_width + pane_width <= mid_width
-  //   ? 'right' : 'mid-left'
-  // );
-  // const from = pane.parentElement;
-  // if (to !== from) to.appendChild(pane);
+      save_svg(svg,`myy_fit_bin${bin_i+1}`);
+    }
+  }}).textContent = 'Save figure';
 }
 
 function save_svg(svg,prefix) {
@@ -950,7 +897,6 @@ function main() {
       ul.style.display = 'none';
       e.target.textContent = '[show]';
     }
-    move_pane();
   }}});
 
   // migration
@@ -966,7 +912,6 @@ function main() {
       style.display = 'none';
       e.target.textContent = '[show]';
     }
-    move_pane();
   }}});
 
   // events
