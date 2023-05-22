@@ -98,6 +98,7 @@ const context_menu = (element,id) => {
   menu = $(document.body,'div',{ id, style: {display:'none'} },['context']);
   element.addEventListener('contextmenu', e => {
     e.preventDefault();
+    e.stopPropagation();
     hide_contexts();
     $(menu,{ style: {
       top: `${e.clientY}px`, left: `${e.clientX}px`, display: null
@@ -809,7 +810,8 @@ function main() {
           break;
       }
     },
-    click: hide_contexts,
+    click: e => { hide_contexts(e); },
+    contextmenu: e => { hide_contexts(e); },
     popstate: e => {
       state = e.state;
       form_from_state();
