@@ -237,13 +237,13 @@ function main() {
         child.remove();
     }
     if (is_asc) {
-      const svg = $(null,'svg',{viewBox:'0 0 2 1'},['desc']);
-      $(svg,'path',{ d: 'M0 1H2L1 0Z', stroke: 'none', fill: 'black' });
+      const svg = $(null,'svg',{viewBox:'0 0 6 6'},['desc']);
+      $(svg,'path',{ d: 'M0 5H6L3 1Z', stroke: 'none', fill: 'black' });
       this.prepend(svg);
       events.sort((a,b) => b[i] - a[i]);
     } else {
-      const svg = $(null,'svg',{viewBox:'0 0 2 1'},['asc']);
-      $(svg,'path',{ d: 'M0 0H2L1 1Z', stroke: 'none', fill: 'black' })
+      const svg = $(null,'svg',{viewBox:'0 0 6 6'},['asc']);
+      $(svg,'path',{ d: 'M0 1H6L3 5Z', stroke: 'none', fill: 'black' })
       this.prepend(svg);
       events.sort((a,b) => a[i] - b[i]);
     }
@@ -255,8 +255,8 @@ function main() {
     clear(table);
     let tr = $(table,'tr');
     let td = $(tr,'td',{events:{click:sort_col}});
-    $(td,'svg',{viewBox:'0 0 2 1'},['asc'],'path',{
-      d: 'M0 0H2L1 1Z', stroke: 'none', fill: 'black'
+    $(td,'svg',{viewBox:'0 0 6 6'},['asc'],'path',{
+      d: 'M0 1H6L3 5Z', stroke: 'none', fill: 'black'
     });
     $(td,'span').textContent = 'Event #';
     for (let i=0; i<state.vars.length; ++i) {
