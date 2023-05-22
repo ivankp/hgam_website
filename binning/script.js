@@ -561,7 +561,7 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
   div.style.display = display;
 
   // hover
-  const info = $(div,'div',['info']);
+  const info = $(div,'div',['info','hide']);
   const over = $(svg,'rect',{
     x: 0, y: 0, width: len-4, height: len-4,
     fill: 'none', stroke: '#C00', 'stroke-width': 4
