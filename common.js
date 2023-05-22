@@ -1,3 +1,5 @@
+const $id = id => document.getElementById(id);
+
 const $ = (p,...args) => {
   if (p===null) {
     const x = args.shift();
@@ -44,18 +46,23 @@ const $ = (p,...args) => {
               p.removeEventListener(k);
           }
         } else {
-          if (p instanceof SVGElement)
-            p.setAttributeNS(null,key,val);
-          else
-            p.setAttribute(key,val);
+          if (p instanceof SVGElement) {
+            if (val!==null)
+              p.setAttributeNS(null,key,val);
+            else
+              p.removeAttributeNS(null,key);
+          } else {
+            if (val!==null)
+              p.setAttribute(key,val);
+            else
+              p.removeAttribute(key);
+          }
         }
       }
     }
   }
   return p;
 };
-
-const $id = id => document.getElementById(id);
 
 const $$ = (...args) => {
   const p = ( args[0] instanceof Element ? args.shift() : document.body );
@@ -66,9 +73,9 @@ const $$ = (...args) => {
   return f ? xs.map(f) : xs;
 };
 
-const clear = p => {
-  for (let x; x = p.lastChild; ) x.remove();
-  return p;
+const clear = (x,n=0) => {
+  while (x.childElementCount > n) x.lastChild.remove();
+  return x;
 };
 
 document.addEventListener('DOMContentLoaded', () => {

@@ -1,5 +1,12 @@
 #page { margin: 0 4px; }
 
+h1 {
+  margin: 0 0 10px 0;
+  font-size: 0.9em;
+  color: #0033A0;
+  font-weight: bold;
+}
+
 #main > div {
   display: inline-block;
   vertical-align: top;
@@ -11,23 +18,28 @@
   margin: 0 0 1em 1em;
 }
 
+#main > div:nth-child(n+2) > h2 {
+  font-weight: normal;
+  font-size: 1em;
+  margin: 0;
+}
+#main > div:nth-child(n+2) > h2 .arrow {
+  margin-right: 0.5em;
+  cursor: pointer;
+}
+#main > div:nth-child(n+2) > h2 .arrow > svg {
+  display: inline-block;
+  width: 0.6em;
+  vertical-align: middle;
+}
+#main > div:nth-child(n+2) > :nth-child(2) {
+  margin: 1em 0 0 0;
+}
+
 #note { font-size: small; }
 #note p {
   margin-top: 5px;
   margin-bottom: 5px;
-}
-
-h1 {
-  margin: 0 0 10px 0;
-  font-size: 0.9em;
-  color: #0033A0;
-  font-weight: bold;
-}
-
-#main h2 {
-  font-weight: normal;
-  font-size: 1em;
-  margin: 0 0 1em 0;
 }
 
 span.bar {
@@ -160,4 +172,10 @@ span.show {
 }
 #mig .info > p {
   margin: 2px 3px;
+}
+#mig .info td {
+  padding: 1px;
+}
+#mig .info td:nth-child(n+2) {
+  padding-left: 1ch;
 }

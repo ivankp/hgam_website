@@ -84,18 +84,14 @@ include '../nav.php';
 <div id="main_table"></div>
 </div>
 
-<div id="data_plot" style="display:none;"></div>
-<div id="mc_plot" style="display:none;"></div>
-<div id="mig">
-  <h2>Reco migration <span class="show">[hide]</span></h2>
-</div>
-<div id="mxaods">
-  <h2>MxAOD files <span class="show">[show]</span></h2>
-</div>
+<div id="data_plot" style="display:none;"><h2></h2></div>
+<div id="mc_plot" style="display:none;"><h2></h2></div>
+<div id="mig"><h2>Reco migration</h2></div>
+<div id="mxaods"><h2>MxAOD files</h2></div>
 
 </div>
 
-<div id="note" style="order: 1;">
+<div id="note">
 <p>sig - number of signal events, taken from Monte Carlo.</p>
 <p>bkg - number of background events in the signal region, estimated from data
 sidebands.</p>

@@ -469,15 +469,16 @@ function process_resp() {
 function draw_migration({migration:mig,vars,sig},mig_frac) {
   const nbins = sig.length;
   const Len = 2**4 * 3**2 * 5, len = Len/nbins;
-  let div = $id('mig');
 
-  const last = div.lastElementChild;
-  const empty = div.childElementCount < 2;
-  const hide = !empty && last.style.display;
-  if (!empty) last.remove();
+  let div = clear($id('mig'),2);
+  div = div.childElementCount < 2 ? $(div,'div') : clear(div.children[1]);
+  const display = div.style.display;
+  div.style.display = '';
 
-  div = $(div,'div');
-  const svg = $(div,'svg');
+  const svg = $(div,
+    'div', { style: { width: '400px' } },
+    'svg', { style: { 'font-family': 'Helvetica, Arial, sans-serif' } }
+  );
 
   const axis_w = 4;
 
@@ -486,9 +487,7 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
   text.textContent = 'Truth';
   let g = text.parentElement;
   let bbox = g.getBBox();
-  $(g,{
-    transform: `translate(${Len-bbox.width-2},${Len+bbox.height+2})`
-  });
+  $(g,{ transform: `translate(${Len-bbox.width-2},${Len+bbox.height+2})` });
   const y_margin = bbox.height + axis_w + 2;
 
   text = $(svg,'g','text',{ style, transform: 'rotate(-90)' });
@@ -533,11 +532,7 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
     }
   }
 
-  $(div,{ style: { width: '400px' } });
-  $(svg,{
-    viewBox: `${-x_margin} 0 ${width} ${Len+y_margin}`,
-    style: { 'font-family': 'Helvetica, Arial, sans-serif' }
-  });
+  $(svg,{ viewBox: `${-x_margin} 0 ${width} ${Len+y_margin}` });
 
   { let k = 0;
     const g = $(svg,'g');
@@ -559,6 +554,8 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
     stroke: '#000',
     fill: 'none'
   });
+
+  div.style.display = display;
 
   // hover
   const info = $(div,'div',['info']);
@@ -613,7 +610,7 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
             + numfmt2(vars[i][1][rr[i]+1]) + ')';
         }
 
-        $(info,'p').textContent = `Monte Carlo events: ${round(mig[r*nbins+t],3)}`;
+        $(info,'p').textContent = `Predicted events: ${round(mig[r*nbins+t],3)}`;
         $(info,'p').textContent = 'Reco %: ' + (
           sig[r] !== 0 ? `${round(100*mig_frac[r*nbins+t],3)}%` : '—'
         );
@@ -621,8 +618,6 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
     },
     mouseleave: e => { $([over,info],['hide']); }
   }});
-
-  if (hide) svg.style.display = 'none';
 
   // context menu
   $(context_menu(svg,'mig_context'),'div',{ events: {
@@ -634,11 +629,15 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
 }
 
 function draw_myy_mc_plot(bin_i) {
-  const div = $(clear($id('mc_plot')),{style:{display:null}});
+  let div = clear($id('mc_plot'),1);
+  $(clear(div.firstChild,1),'span').innerHTML =
+    `m<sub>&gamma;&gamma;</sub> signal MC, bin ${bin_i+1}`;
+
+  div = $(div,{style:{display:null}},'div');
 
   const resp = state.resp;
   const bin = resp.hist_mc[bin_i];
-  const plot = new Plot('#mc_plot',400,250,'white');
+  const plot = new Plot(div,400,250,'white');
   const svg = plot.svg.node();
 
   const {fiducial,signal,bin_width:{mc:wm}} = resp.m_yy;
@@ -818,6 +817,26 @@ function main() {
     }
   }});
 
+  // widget arrows
+  $$('#main > div:nth-child(n+2) > h2', h => {
+    const span = $(null,'span',['arrow']);
+    const svg  = $(span,'svg' ,{viewBox:'0 0 6 6'});
+    const path = $(svg ,'path',{d:'M0 1H6L3 5Z', stroke:'none', fill:'black'});
+    $(span, { events: {
+      click: e => {
+        const style = h.nextElementSibling.style;
+        if (style.display !== 'none') {
+          $(path,{ transform: 'rotate(-90,3,3)' });
+          style.display = 'none';
+        } else {
+          $(path,{ transform: null });
+          style.display = null;
+        }
+      }
+    }});
+    h.prepend(span);
+  });
+
   // collect named form elements
   const form = $('form');
   $$(form,'[name]', x => { fields[x.name] = x; });
@@ -871,48 +890,18 @@ function main() {
   toggle_row_click(fields.click);
 
   // MxAODs
-  const mxaods_div = $id('mxaods');
-  $('.show',mxaods_div,{ events: { click: e => {
-    let ul = mxaods_div.lastElementChild;
-    if (ul.tagName !== 'UL') {
-      ul = (function level(li,xs) {
-        const ul = $(li,'ul');
-        for (const x of xs) {
-          const li = $(ul,'li');
-          if (Array.isArray(x)) {
-            $(li,'span',['dir']).textContent = x[0];
-            level(li,x[1]);
-          } else {
-            li.textContent = x;
-          }
-        }
-        return ul;
-      }(mxaods_div,mxaods));
-      ul.style.display = 'none';
+  (function level(li,xs) {
+    const ul = $(li,'ul');
+    for (const x of xs) {
+      const li = $(ul,'li');
+      if (Array.isArray(x)) {
+        $(li,'span',['dir']).textContent = x[0];
+        level(li,x[1]);
+      } else {
+        li.textContent = x;
+      }
     }
-    if (ul.style.display) { // hidden, need to show
-      ul.style.display = null;
-      e.target.textContent = '[hide]';
-    } else { // shown, need to hide
-      ul.style.display = 'none';
-      e.target.textContent = '[show]';
-    }
-  }}});
-
-  // migration
-  const mig_div = $id('mig');
-  $('.show',mig_div,{ events: { click: e => {
-    const empty = mig_div.childElementCount < 2;
-    if (empty) return;
-    const style = mig_div.lastElementChild.style;
-    if (style.display) { // hidden, need to show
-      style.display = null;
-      e.target.textContent = '[hide]';
-    } else { // shown, need to hide
-      style.display = 'none';
-      e.target.textContent = '[show]';
-    }
-  }}});
+  }($id('mxaods'),mxaods));
 
   // events
   for (const [name,f] of [
