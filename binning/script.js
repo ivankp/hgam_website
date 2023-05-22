@@ -465,14 +465,16 @@ function process_resp() {
   $id('run_time').textContent = state.resp.time + ' ms';
 
   draw_migration(state.resp,mig_frac);
+
+  // TODO: list different files for different datasets
+  list_mxaod_files(mxaods);
 }
 
 function draw_migration({migration:mig,vars,sig},mig_frac) {
   const nbins = sig.length;
   const Len = 2**4 * 3**2 * 5, len = Len/nbins;
 
-  let div = clear($id('mig'),2);
-  div = div.childElementCount < 2 ? $(div,'div') : clear(div.children[1]);
+  const div = clear(clear($id('mig'),2).children[1]);
   const display = div.style.display;
   div.style.display = '';
 
@@ -773,6 +775,21 @@ function draw_myy_data_plot(bin_i) {
   }}).textContent = 'Save figure';
 }
 
+function list_mxaod_files(mxaods) {
+  (function level(li,xs) {
+    const ul = $(li,'ul');
+    for (const x of xs) {
+      const li = $(ul,'li');
+      if (Array.isArray(x)) {
+        $(li,'span',['dir']).textContent = x[0];
+        level(li,x[1]);
+      } else {
+        li.textContent = x;
+      }
+    }
+  }(clear($id('mxaods').children[1]),mxaods));
+}
+
 function save_svg(svg,prefix) {
   svg = svg.cloneNode(true);
   $$(svg,'.hide',x => x.remove());
@@ -890,20 +907,6 @@ function main() {
   }
   toggle_unc_cols();
   toggle_row_click(fields.click);
-
-  // MxAODs
-  (function level(li,xs) {
-    const ul = $(li,'ul');
-    for (const x of xs) {
-      const li = $(ul,'li');
-      if (Array.isArray(x)) {
-        $(li,'span',['dir']).textContent = x[0];
-        level(li,x[1]);
-      } else {
-        li.textContent = x;
-      }
-    }
-  }($id('mxaods'),mxaods));
 
   // events
   for (const [name,f] of [

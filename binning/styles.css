@@ -32,7 +32,7 @@ h1 {
   width: 0.6em;
   vertical-align: middle;
 }
-#main > div:nth-child(n+2) > :nth-child(2) {
+#main > div:nth-child(n+2) > *:nth-child(2) {
   margin: 1em 0 0 0;
 }
 
@@ -93,14 +93,14 @@ form > div {
   padding: 0 0 0 2ch;
   font-family: monospace;
 }
-#mxaods > ul { padding: 0; margin: 0; }
+#mxaods > div > ul { padding: 0; margin: 0; }
 #mxaods li {
   padding-left: 0;
   margin-left: 0;
   list-style-type: none;
 }
 #mxaods .dir { color: #729fcf; font-weight: bold; }
-#mxaods > :nth-child(2) { font-size: 0.85em; }
+#mxaods > *:nth-child(2) { font-size: 0.85em; }
 span.show {
   cursor: pointer;
   color: blue;
@@ -169,6 +169,14 @@ span.show {
 #mig .info {
   font-size: small;
   font-family: monospace;
+  position: absolute;
+  z-index: 100;
+  background-color: #fff;
+  padding: 0.5em;
+  border: 2px solid #ddd;
+  border-radius: 7px;
+  box-shadow: 0 0 10px #ddd;
+  min-width: 300px;
 }
 #mig .info > p {
   margin: 2px 3px;
