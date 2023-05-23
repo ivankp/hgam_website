@@ -958,6 +958,10 @@ function main() {
       loading.style.removeProperty('display');
       $id('run_time').textContent = '';
 
+      // hide plots so that old plots don't stick around after rebinning
+      $id('data_plot').parentElement.style.display = 'none';
+      $id(  'mc_plot').parentElement.style.display = 'none';
+
       const enable = () => {
         for (const x of form_elements) x.disabled = false;
         loading.style.display = 'none';
