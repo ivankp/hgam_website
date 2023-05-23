@@ -474,7 +474,7 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
   const nbins = sig.length;
   const Len = 2**4 * 3**2 * 5, len = Len/nbins;
 
-  const div = clear(clear($id('mig'),2).children[1]);
+  const div = clear($id('mig'));
   const display = div.style.display;
   div.style.display = '';
 
@@ -793,7 +793,7 @@ function list_mxaod_files(mxaods) {
         li.textContent = x;
       }
     }
-  }(clear($id('mxaods').children[1]),mxaods));
+  }(clear($id('mxaods')),mxaods));
 }
 
 function save_svg(svg,prefix) {

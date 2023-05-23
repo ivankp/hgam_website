@@ -89,26 +89,6 @@ form > div {
   margin: 3px 0;
 }
 
-#mxaods ul {
-  padding: 0 0 0 2ch;
-  font-family: monospace;
-}
-#mxaods > div > ul { padding: 0; margin: 0; }
-#mxaods li {
-  padding-left: 0;
-  margin-left: 0;
-  list-style-type: none;
-}
-#mxaods .dir { color: #729fcf; font-weight: bold; }
-#mxaods > *:nth-child(2) { font-size: 0.85em; }
-span.show {
-  cursor: pointer;
-  color: blue;
-  font-size: small;
-  margin-left: 2px;
-  user-select: none;
-}
-
 #main_table > table {
   margin: 5px 0;
   border-collapse: collapse;
@@ -186,4 +166,17 @@ span.show {
 }
 #mig .info td:nth-child(n+2) {
   padding-left: 1ch;
+}
+
+#mxaods { font-size: 0.85em; }
+#mxaods .dir { color: #729fcf; font-weight: bold; }
+#mxaods ul {
+  padding: 0 0 0 2ch;
+  font-family: monospace;
+}
+#mxaods > ul { padding: 0; margin: 0; }
+#mxaods li {
+  padding-left: 0;
+  margin-left: 0;
+  list-style-type: none;
 }
