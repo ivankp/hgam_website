@@ -84,7 +84,7 @@ include '../nav.php';
 <div id="main_table"></div>
 </div>
 
-<div id="data_plot" style="display:none;"><h2></h2></div>
+<div style="display:none;"><h2></h2><div id="data_plot"></div></div>
 <div style="display:none;"><h2></h2><div id="mc_plot"></div></div>
 <div id="mig"><h2>Reco migration</h2><div></div></div>
 <div id="mxaods"><h2>MxAOD files</h2><div></div></div>

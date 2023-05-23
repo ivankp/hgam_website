@@ -646,7 +646,7 @@ function draw_myy_mc_plot(bin_i) {
 
   let ymin = Infinity, ymax = -Infinity;
   const x0 = fiducial[0];
-  const hist_bin = bin.map(([w,w2],i) => {
+  const hist_bins = bin.map(([w,w2],i) => {
     const u = Math.sqrt(w2);
     const a = w-u, b = w+u;
     if (b > 0 && u/w < 0.925) {
@@ -665,7 +665,7 @@ function draw_myy_mc_plot(bin_i) {
     { range: [ymin,ymax], padding: [45,5], nice: true, log: true }
   );
 
-  plot.hist(hist_bin).attrs({ stroke: '#000099', 'stroke-width': 2 });
+  plot.hist(hist_bins).attrs({ stroke: '#000099', 'stroke-width': 2 });
 
   // context menu
   $(context_menu(svg,'mc_plot_context'),'div',{ events: {
@@ -677,11 +677,14 @@ function draw_myy_mc_plot(bin_i) {
 }
 
 function draw_myy_data_plot(bin_i) {
-  const div = $(clear($id('data_plot')),{style:{display:null}});
+  const div = clear($id('data_plot'));
+  $(div.parentElement,{style:{display:null}});
+  $(clear(div.previousElementSibling,1),'span').innerHTML =
+    `m<sub>&gamma;&gamma;</sub> data, bin ${bin_i+1}`;
 
   const resp = state.resp;
   const bin = resp.hist[bin_i];
-  const plot = new Plot('#data_plot',400,250,'white');
+  const plot = new Plot(div,400,250,'white');
   const svg = plot.svg.node();
 
   const {fiducial,signal,bin_width:{data:wd}} = resp.m_yy;
@@ -691,13 +694,13 @@ function draw_myy_data_plot(bin_i) {
     { range: [0,d3.max(bin[0].concat(bin[1]))*1.05], padding: [45,5], nice: true }
   );
 
-  const hist_bin = x0 => (x,i) => [ x0+i*wd, x0+(i+1)*wd, x, Math.sqrt(x) ];
+  const hist_bins = x0 => (x,i) => [ x0+i*wd, x0+(i+1)*wd, x, Math.sqrt(x) ];
 
   plot.hist(
     bin[0].map(
-      hist_bin(fiducial[0])
+      hist_bins(fiducial[0])
     ).concat( bin[1].map(
-      hist_bin(signal[1])
+      hist_bins(signal[1])
     ))
   ).attrs({
     stroke: '#000099',
@@ -742,7 +745,6 @@ function draw_myy_data_plot(bin_i) {
   const  params = resp.fit[bin_i];
   const nparams = params.length;
 
-  $(info,'p',['bold']).textContent = `Bin ${bin_i+1}`;
   $(info,'p').textContent = 'x = m_yy - 125';
   { let eq = 'y = exp( ';
     for (let i=0; i<nparams; ++i) {
