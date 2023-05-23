@@ -632,11 +632,10 @@ function draw_migration({migration:mig,vars,sig},mig_frac) {
 }
 
 function draw_myy_mc_plot(bin_i) {
-  let div = clear($id('mc_plot'),1);
-  $(clear(div.firstChild,1),'span').innerHTML =
+  const div = clear($id('mc_plot'));
+  $(div.parentElement,{style:{display:null}});
+  $(clear(div.previousElementSibling,1),'span').innerHTML =
     `m<sub>&gamma;&gamma;</sub> signal MC, bin ${bin_i+1}`;
-
-  div = $(div,{style:{display:null}},'div');
 
   const resp = state.resp;
   const bin = resp.hist_mc[bin_i];
@@ -645,23 +644,28 @@ function draw_myy_mc_plot(bin_i) {
 
   const {fiducial,signal,bin_width:{mc:wm}} = resp.m_yy;
 
+  let ymin = Infinity, ymax = -Infinity;
+  const x0 = fiducial[0];
+  const hist_bin = bin.map(([w,w2],i) => {
+    const u = Math.sqrt(w2);
+    const a = w-u, b = w+u;
+    if (b > 0 && u/w < 0.925) {
+      if (b > ymax) ymax = b;
+      if (a > 0) {
+        if (a < ymin) ymin = a;
+      } else if (w > 0) {
+        if (w < ymin) ymin = w;
+      }
+    }
+    return [ x0+i*wm, x0+(i+1)*wm, w, u ];
+  });
+
   plot.axes(
     { range: fiducial, padding: [33,10], label: 'm_yy [GeV]' },
-    { range: [0,d3.max(bin.map(x => x[0]))*1.05], padding: [45,5], nice: true }
-    // { range: plot.hist_yrange(bin.map(x => x[0]),true),
-    //   padding: [45,5]
-    // }
+    { range: [ymin,ymax], padding: [45,5], nice: true, log: true }
   );
 
-  const hist_bin =
-    x0 => ([w,w2],i) => [ x0+i*wm, x0+(i+1)*wm, w, Math.sqrt(w2) ];
-
-  plot.hist(
-    bin.map( hist_bin(fiducial[0]) )
-  ).attrs({
-    stroke: '#000099',
-    'stroke-width': 2
-  });
+  plot.hist(hist_bin).attrs({ stroke: '#000099', 'stroke-width': 2 });
 
   // context menu
   $(context_menu(svg,'mc_plot_context'),'div',{ events: {
@@ -931,10 +935,10 @@ function main() {
 
   main_table.addEventListener('click', e => {
     if (fields.click.checked && e.target.nodeName=='TD') {
-      const i = e.target.parentElement.rowIndex;
-      if (i >= 2) {
-        draw_myy_data_plot(i-2);
-        draw_myy_mc_plot(i-2);
+      const i = e.target.parentElement.rowIndex - 2;
+      if (i >= 0) {
+        draw_myy_data_plot(i);
+        draw_myy_mc_plot(i);
       }
     }
   });
@@ -951,9 +955,6 @@ function main() {
       const loading = $id('loading');
       loading.style.removeProperty('display');
       $id('run_time').textContent = '';
-
-      clear($id('data_plot'));
-      clear($id('mc_plot'));
 
       const enable = () => {
         for (const x of form_elements) x.disabled = false;

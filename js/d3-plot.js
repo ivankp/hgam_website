@@ -43,20 +43,26 @@ this.axes = function(xa,ya) {
 
 this.hist = function(data) {
   const s = this.scales;
+  const [min,max] = s[1].domain();
   const g = this.svg.append('g');
   g.selectAll('g.bin').data(data).enter()
     .append('g').call(g => {
-      g.append("line").attrs(d => ({
+      g.filter( d =>
+        min < d[2] && d[2] < max
+      ).append("line").attrs(d => ({
         x1: s[0](d[0]),
         x2: s[0](d[1]),
         y1: s[1](d[2]),
         y2: s[1](d[2])
       }));
-      g.filter(d => d[3]).append("line").attrs(d => ({
-        x1: s[0]((d[0]+d[1])/2),
-        x2: s[0]((d[0]+d[1])/2),
-        y1: s[1](d[2]+d[3]),
-        y2: s[1](d[2]-(d[4]!=null ? d[4] : d[3])),
+      g.filter( d =>
+        ( d[3] || d[4] ) &&
+        min < d[2]+d[3] && d[2]-(d[4]!=null ? d[4] : d[3]) < max
+      ).append("line").attrs(d => ({
+        x1: s[0]( (d[0]+d[1])/2 ),
+        x2: s[0]( (d[0]+d[1])/2 ),
+        y1: s[1]( Math.max( d[2]+d[3], min ) ),
+        y2: s[1]( Math.min( d[2]-(d[4]!=null ? d[4] : d[3]), max ) )
       }));
     });
   return g;
