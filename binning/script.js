@@ -120,7 +120,7 @@ function state_from_url() {
         if (i!==-1) state[k] = i;
       } else if (['lumi','wd','wm'].includes(k)) {
         state[k] = v;
-      } else if ([/*'fitmc',*/'unc','click'].includes(k)) {
+      } else if (['fitmc','unc','click'].includes(k)) {
         state[k] = null;
       } else if (k.match(/x[1-9]/)) {
         if (v==null || v.length==0) continue;
@@ -200,9 +200,10 @@ function search_from_state(req=false) {
     for (const e of edges) search += '+' + e;
   }
 
-  if (!req)
-    for (const k of [/*'fitmc',*/'unc','click'])
-      if (k in state) search += '&' + k;
+  const flags = ['fitmc'];
+  if (!req) flags.push('unc','click');
+  for (const k of flags)
+    if (k in state) search += '&' + k;
 
   return search;
 }
@@ -302,7 +303,7 @@ function fix_form_var_names(tr,d) {
 }
 
 function form_from_state() {
-  for (const x of [/*'fitmc',*/'unc','click'])
+  for (const x of ['fitmc','unc','click'])
     fields[x].checked = x in state;
 
   for (const x of ['lumi','wd','wm'])
@@ -667,6 +668,23 @@ function draw_myy_mc_plot(bin_i) {
 
   plot.hist(hist_bins).attrs({ stroke: '#000099', 'stroke-width': 2 });
 
+  if ('fit_mc' in resp) {
+    const { C,mu,std,aL,nL,aH,nH } = resp.fit_mc[bin_i];
+
+    plot.fcurve({
+      f: x => {
+        x -= 125;
+        return C * Math.exp( -0.5*((mu-x)/std)**2 );
+      },
+      a: fiducial[0], b: fiducial[1], n: 100
+    }).attrs({
+      stroke: '#E19C24',
+      fill: 'none',
+      'stroke-width': 2,
+      'stroke-opacity': 0.65
+    });
+  }
+
   // context menu
   $(context_menu(svg,'mc_plot_context'),'div',{ events: {
     click: e => {
@@ -917,23 +935,23 @@ function main() {
   // events
   for (const [name,f] of [
     ['unc', toggle_unc_cols],
-    ['click', toggle_row_click]
+    ['click', toggle_row_click],
+    ['fitmc', null]
   ]) {
     fields[name].addEventListener('change', e => {
       if (e.target.checked) state[name] = null;
       else delete state[name];
-      f(e.target);
+      if (f !== null) f(e.target);
       url_from_state();
     });
   }
-  /*
+
   for (const name of ['fitmc']) {
     fields[name].addEventListener('change', e => {
       if (e.target.checked) state[name] = null;
       else delete state[name];
     });
   }
-  */
 
   main_table.addEventListener('click', e => {
     if (fields.click.checked && e.target.nodeName=='TD') {

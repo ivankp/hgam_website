@@ -49,12 +49,13 @@ span.bar {
 form label {
   user-select: none;
   font-size: small;
+  cursor: pointer;
 }
 form label > * {
   vertical-align: middle;
 }
-.small {
-  font-size: small;
+form .checkboxes > * {
+  display: inline;
 }
 
 select[name="dataset"],
