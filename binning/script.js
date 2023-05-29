@@ -666,19 +666,74 @@ function draw_myy_mc_plot(bin_i) {
     { range: [ymin,ymax], padding: [45,5], nice: true, log: true }
   );
 
+  const log_ymin = Math.log( plot.scales[1].domain()[0] );
+
   plot.hist(hist_bins).attrs({ stroke: '#000099', 'stroke-width': 2 });
 
   if ('fit_mc' in resp) {
-    const { C,mu,std,aL,nL,aH,nH } = resp.fit_mc[bin_i];
+    let { C, mu, std, aL, nL, aH, nH } = resp.fit_mc[bin_i];
+    mu += 125;
+
+    const mL =  mu-std*aL, mH = mu+std*aH;
 
     plot.fcurve({
       f: x => {
-        x -= 125;
-        return C * Math.exp( -0.5*((mu-x)/std)**2 );
+        return Math.exp( C - 0.5*((mu-x)/std)**2 );
       },
-      a: fiducial[0], b: fiducial[1], n: 100
+      a: mL, b: mH, n: 25
+    }).attrs({
+      stroke: 'red',
+      fill: 'none',
+      'stroke-width': 2,
+      'stroke-opacity': 0.65
+    });
+
+    plot.fcurve({
+      f: x => {
+        return Math.exp( C - 0.5*((mu-x)/std)**2 );
+      },
+      a: mu - Math.SQRT2 * std * Math.sqrt(C-log_ymin), b: mL, n: 25
     }).attrs({
       stroke: '#E19C24',
+      fill: 'none',
+      'stroke-width': 2,
+      'stroke-opacity': 0.65
+    });
+    plot.fcurve({
+      f: x => {
+        return Math.exp( C - 0.5*((mu-x)/std)**2 );
+      },
+      a: mH, b: mu + Math.SQRT2 * std * Math.sqrt(C-log_ymin), n: 25
+    }).attrs({
+      stroke: '#E19C24',
+      fill: 'none',
+      'stroke-width': 2,
+      'stroke-opacity': 0.65
+    });
+
+    let A = Math.exp( C - 0.5*aL**2 );
+    plot.fcurve({
+      f: x => {
+        x = ( (x-mu)/std + aL ) * aL;
+        return A * (1 - x/nL)**-nL
+      },
+      a: fiducial[0], b: mL, n: 25
+    }).attrs({
+      stroke: 'red',
+      fill: 'none',
+      'stroke-width': 2,
+      'stroke-opacity': 0.65
+    });
+
+    A = Math.exp( C - 0.5*aH**2 );
+    plot.fcurve({
+      f: x => {
+        x = ( (x-mu)/std - aH ) * aH;
+        return A * (1 + x/nH)**-nH
+      },
+      a: mH, b: fiducial[1], n: 25
+    }).attrs({
+      stroke: 'red',
       fill: 'none',
       'stroke-width': 2,
       'stroke-opacity': 0.65
