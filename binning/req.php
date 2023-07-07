@@ -1,5 +1,10 @@
 <?php
+$q = $_SERVER['QUERY_STRING'];
 header('Content-Type: application/json');
-passthru('timeout 5s ./binner \''.$_SERVER['QUERY_STRING'].'\'',$ret);
-if ($ret > 1) echo '{"error":"failed to run binner"}';
+if (strpbrk($q,'\'"')) {
+  echo '{"error":"bad request"}';
+} else {
+  passthru('timeout 5s ./binner \''.$q.'\'',$ret);
+  if ($ret > 1) echo '{"error":"failed to run binner"}';
+}
 ?>
